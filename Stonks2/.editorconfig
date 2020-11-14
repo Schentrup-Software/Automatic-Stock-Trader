@@ -1,0 +1,31 @@
+# Rules in this file were initially inferred by Visual Studio IntelliCode from the C:\Users\j03y\Desktop\Projects\Stonks2\Stonks2\ codebase based on best match to current usage at 11/13/2020
+# You can modify the rules from these initially generated values to suit your own policies
+# You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+[*.cs]
+
+
+#Formatting - organize using options
+
+# Indentation and spacing
+indent_size = 4
+indent_style = space
+tab_width = 4
+
+# New line preferences
+end_of_line = lf
+insert_final_newline = false
+
+#do not place System.* using directives before other using directives
+dotnet_sort_system_directives_first = true
+
+#Formatting - spacing options
+
+#do not place space characters after the opening parenthesis and before the closing parenthesis of a method call
+csharp_space_between_method_call_parameter_list_parentheses = false
+
+#Style - implicit and explicit types
+
+#prefer var over explicit type in all cases, unless overridden by another code style rule
+csharp_style_var_elsewhere = true:suggestion
+#prefer var when the type is already mentioned on the right-hand side of a declaration expression
+csharp_style_var_when_type_is_apparent = true:suggestion

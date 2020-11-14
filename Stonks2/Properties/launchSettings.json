@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Stonks2": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SECRET_KEY": "uByiwuVErVNds1CdZ2PpqhiejT6yjWaOIjzT8emQ",
+        "PAPER_KEY_ID": "PK6ICLTXKSQ5RGSQOBU6",
+        "LIVE_KEY_ID": "AKUCSVBUOFBQTP2WYBD5"
+      }
+    }
+  }
+}
