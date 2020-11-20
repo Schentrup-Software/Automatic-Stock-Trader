@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stonks2", "Stonks2\Stonks2.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.CognitiveServices.Search.BingNewsSearch", "Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj", "{751124EE-0319-4E81-AD81-504CE90B628C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stonks2.Tests", "Stonks2.Tests\Stonks2.Tests.csproj", "{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stonks2.Tests", "Stonks2.Tests\Stonks2.Tests.csproj", "{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{90C1458D-7163-45F9-89C0-143DE5F6908F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\master_stonks220201119200446.yml = .github\workflows\master_stonks220201119200446.yml
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

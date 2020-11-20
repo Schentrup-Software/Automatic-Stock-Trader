@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Stonks2.Tests
+namespace Stonks2.Tests.Stategies
 {
     [TestClass, TestCategory("Small")]
     public class MeanReversionStrategyTests

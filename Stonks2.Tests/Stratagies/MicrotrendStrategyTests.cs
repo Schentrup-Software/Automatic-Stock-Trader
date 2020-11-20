@@ -4,14 +4,12 @@ using Stonks2.Alpaca;
 using Stonks2.Stratagies.MicrotrendStrategy;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Stonks2.Tests
+namespace Stonks2.Tests.Stategies
 {
     [TestClass, TestCategory("Small")]
-    public class MicroTrendStrategyTests
+    public class MicrotrendStrategyTests
     {
         private MicrotrendStrategy _strategy;
 

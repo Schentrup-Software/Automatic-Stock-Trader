@@ -11,7 +11,7 @@ using Stonks2.Stratagies.MicrotrendStrategy;
 using System.Diagnostics;
 using Stonks2.Stratagies.MeanReversionStrategy;
 
-namespace Stonks2.Tests
+namespace Stonks2.Tests.Stategies
 {
     [TestClass, TestCategory("Large")]
     public class LargeStrategiesTests
