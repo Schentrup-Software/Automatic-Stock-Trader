@@ -1,4 +1,4 @@
-# AutomaticStockTrader
+# Automatic Stock Trader
 
 A framework for building and testing minute to minute automatic trading using the [Alpaca API](https://alpaca.markets/).
 
