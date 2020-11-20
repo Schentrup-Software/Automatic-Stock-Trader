@@ -15,4 +15,4 @@ you will need to add the follwing enviroment variables:
 
 The command app runs on the paper api by default. A live app id is still required if using the paper api. If you 
 want to run the app using a live account, you need to set the `SECRET_KEY` to your live app secret key, another 
-enviorment variable `Run_In_Production` to `true, and there is no need to set the `PAPER_KEY_ID`.
+enviorment variable `Run_In_Production` to `true`, and there is no need to set the `PAPER_KEY_ID`.
