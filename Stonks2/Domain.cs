@@ -3,19 +3,16 @@ using Microsoft.ML.Data;
 
 namespace Stonks2
 {
-    public record ModelInput
+    public record StockInput
     {
-        public float PriceDiffrence { get; init; }
-        public DateTime Time { get; init; }
-
-        [NoColumn]
         public decimal ClosingPrice { get; init; }
+        public string StockSymbol { get; init; }
+        public DateTime Time { get; init; }
     }
 
-    public record ModelOutput 
+    public class MoneyTracker
     {
-        public float[] ForecastedPriceDiffrence { get; init; }
-        public float[] LowerBoundPriceDiffrence { get; init; }
-        public float[] UpperBoundPriceDiffrence { get; init; }
-    }
+        public decimal MoneyMade { get; set; }
+        public decimal CostOfLastPosition { get; set; }
+    };
 }

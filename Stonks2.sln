@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stonks2", "Stonks2\Stonks2.csproj", "{C15A3368-F71E-4A65-9762-64ACD7AA97D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stonks2", "Stonks2\Stonks2.csproj", "{C15A3368-F71E-4A65-9762-64ACD7AA97D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.CognitiveServices.Search.BingNewsSearch", "Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj", "{751124EE-0319-4E81-AD81-504CE90B628C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stonks2.Tests", "Stonks2.Tests\Stonks2.Tests.csproj", "{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{C15A3368-F71E-4A65-9762-64ACD7AA97D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C15A3368-F71E-4A65-9762-64ACD7AA97D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C15A3368-F71E-4A65-9762-64ACD7AA97D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{751124EE-0319-4E81-AD81-504CE90B628C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{751124EE-0319-4E81-AD81-504CE90B628C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{751124EE-0319-4E81-AD81-504CE90B628C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{751124EE-0319-4E81-AD81-504CE90B628C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

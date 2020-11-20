@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.TimeSeries;
 using Stonks2.Configuration;
@@ -38,5 +35,18 @@ namespace Stonks2
             var forecaster = forecastingPipeline.Fit(trainDataVeiw);
             return forecaster.CreateTimeSeriesEngine<ModelInput, ModelOutput>(mlContext);
         }
+    }
+
+    public record ModelInput
+    {
+        public float PriceDiffrence { get; init; }
+        public DateTime Time { get; init; }
+    }
+
+    public record ModelOutput
+    {
+        public float[] ForecastedPriceDiffrence { get; init; }
+        public float[] LowerBoundPriceDiffrence { get; init; }
+        public float[] UpperBoundPriceDiffrence { get; init; }
     }
 }

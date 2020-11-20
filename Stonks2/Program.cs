@@ -1,20 +1,17 @@
 ﻿using Alpaca.Markets;
 using Microsoft.Extensions.Configuration;
-using Microsoft.ML;
-using Microsoft.ML.Transforms.TimeSeries;
 using Stonks2;
+using Stonks2.Alpaca;
 using Stonks2.Configuration;
+using Stonks2.Stratagies;
+using Stonks2.Stratagies.MeanReversionStrategy;
+using Stonks2.Stratagies.MicrotrendStrategy;
+using Stonks2.Stratagies.MLStrategy;
+using Stonks2.Stratagies.NewsStrategy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-
-var _quitEvent = new ManualResetEvent(false);
-
-Console.CancelKeyPress += (sender, eArgs) => {
-    _quitEvent.Set();
-    eArgs.Cancel = true;
-};
+using System.Threading.Tasks;
 
 //Config
 var config = new ConfigurationBuilder()
@@ -22,48 +19,36 @@ var config = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-var allStocksHistoricalData = new Dictionary<string, IList<ModelInput>>();
+var stockSymbol = config.Get<StockConfig>().Stock_List.ToList();
 var alpacaConfig = config.Get<AlpacaConfig>();
-using var alpacaClient = new AlpacaClient(alpacaConfig);
+var alpacaClient = new AlpacaClient(alpacaConfig);
 
-foreach (var stockSymbol in alpacaConfig.Stock_List)
+var stratagies = new List<Strategy>()
 {
-    var trainData = await alpacaClient.GetStockData(stockSymbol);
-    allStocksHistoricalData.Add(stockSymbol, trainData);   
+    new MLStrategy(alpacaClient, config.Get<MLConfig>()),
+    new NewsStrategy(alpacaClient, config.Get<NewsSearchConfig>()),
+    new MicrotrendStrategy(alpacaClient),
+    new MeanReversionStrategy(alpacaClient),
+};
+
+//await new NewsStrategy(config.Get<NewsSearchConfig>()).DoStuff();
+
+//await AddStrategy(stockSymbol[0], alpacaConfig, stratagies[0]);
+await AddStrategy(stockSymbol[2], stratagies[2], alpacaClient);
+
+while (true)
+{
+    await Task.Delay(600000);
 }
 
-if(!await alpacaClient.ConnectStreamApi())
+async static Task AddStrategy(string stockSymbol, Strategy strategy, IAlpacaClient alpacaClient)
 {
-    throw new UnauthorizedAccessException("Failed to connect to streaming API. Authorization failed.");
-}
+    strategy.HistoricalData = await alpacaClient.GetStockData(stockSymbol);
 
-foreach (var stockData in allStocksHistoricalData)
-{
-    await alpacaClient.SubscribeToQuoteChange(stockData.Key, x =>
+    if (!await alpacaClient.ConnectStreamApi(stockSymbol))
     {
-        if (allStocksHistoricalData.TryGetValue(stockData.Key, out var inputs))
-        {
-            inputs.Add(new ModelInput
-            {
-                PriceDiffrence = (float)((x.Close - inputs.Last().ClosingPrice) / inputs.Last().ClosingPrice),
-                ClosingPrice = x.Close,
-                Time = x.EndTimeUtc
-            });
-            var modelBuilder = new ModelBuilder(config.Get<MLConfig>());
-            var model = modelBuilder.BuildModel(inputs);
-            var result = model.Predict();
-            result.ForecastedPriceDiffrence.ToList().ForEach(x => Console.WriteLine(x));
+        throw new UnauthorizedAccessException("Failed to connect to streaming API. Authorization failed.");
+    }
 
-            if(result.ForecastedPriceDiffrence[0] > 0)
-            {
-                alpacaClient.TakePosition(stockData.Key).Wait();
-            }
-            else
-            {
-                alpacaClient.ClearPostion(stockData.Key).Wait();
-            }
-        }        
-    });
+    alpacaClient.SubscribeMinuteAgg(stockSymbol, async x => await strategy.HandleMinuteAgg(x));
 }
-
-_quitEvent.WaitOne();
