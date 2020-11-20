@@ -33,8 +33,9 @@ var stratagies = new List<Strategy>()
 
 //await new NewsStrategy(config.Get<NewsSearchConfig>()).DoStuff();
 
-//await AddStrategy(stockSymbol[0], alpacaConfig, stratagies[0]);
+await AddStrategy(stockSymbol[0], stratagies[0], alpacaClient);
 await AddStrategy(stockSymbol[2], stratagies[2], alpacaClient);
+await AddStrategy(stockSymbol[3], stratagies[3], alpacaClient);
 
 while (true)
 {
