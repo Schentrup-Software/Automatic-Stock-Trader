@@ -1,7 +1,7 @@
-name: Automatic-Stock-Trader
+name: automatic-stock-trader
 workers:
 - dockerfile_path: Dockerfile
-  name: Automatic-Stock-Trader
+  name: automatic-stock-trader
   github:
     branch: main
     deploy_on_push: true
