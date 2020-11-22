@@ -13,9 +13,9 @@ using Stonks2.Stratagies.NewsStrategy;
 
 class Program
 {
-    /// <param name="stockSymbol">The stock symbol to employ the trading strategy on.</param>
-    /// <param name="strategyNames">A  comma seperated list of the strategies to employ on the stock. Possible list list of strategies: MeanReversionStrategy, MLStrategy, and MicrotrendStrategy.</param>
-    static async Task<int> Main(string stockSymbol = "AAPL", string[] strategyNames = null)
+    /// <param name="stockSymbols">A list of the stock symbols to employ the trading strategies on.</param>
+    /// <param name="strategyName">A strategy to employ on the stock. Possible list list of strategies: MeanReversionStrategy, MLStrategy, and MicrotrendStrategy.</param>
+    static async Task<int> Main(string[] stockSymbols = null, string strategyName = null)
     {
         //Config
         var config = new ConfigurationBuilder()
@@ -26,36 +26,44 @@ class Program
         var alpacaConfig = config.Get<AlpacaConfig>();
         var alpacaClient = new AlpacaClient(alpacaConfig);
 
+        if ((stockSymbols?.Length ?? 0) == 0)
+        {
+            throw new ArgumentException("You must pass an least one valid stock symbol", nameof(stockSymbols));
+        }
+
         var strategies = new List<Strategy>()
         {
             new MeanReversionStrategy(alpacaClient),
             new MLStrategy(alpacaClient, config.Get<MLConfig>()),
-            //new NewsStrategy(alpacaClient, config.Get<NewsSearchConfig>()),
             new MicrotrendStrategy(alpacaClient),
+            //new NewsStrategy(alpacaClient, config.Get<NewsSearchConfig>()),
         };
 
-        strategies = strategies
-            .Where(x => strategyNames
-                .Any(y => string.Equals(x.GetType().Name, y, StringComparison.OrdinalIgnoreCase)))
-            .ToList();
+        var strategy = strategies
+            .SingleOrDefault(x => string.Equals(x.GetType().Name, strategyName, StringComparison.OrdinalIgnoreCase));
 
-        if (strategies.Count == 0)
+        if (strategy == null)
         {
-            throw new ArgumentException("Could not find any strategies with the names"
-                + $"'{strategyNames.Aggregate((x, y) => $"{x}, {y}")}'", nameof(strategyNames));
+            throw new ArgumentException($"Could not find any strategies with the name '{strategyName}'", nameof(strategyName));
         }
 
-        var stockData = await alpacaClient.GetStockData(stockSymbol);
-
-        if (!await alpacaClient.ConnectStreamApi(stockSymbol))
+        if (!await alpacaClient.ConnectStreamApi())
         {
             throw new UnauthorizedAccessException("Failed to connect to streaming API. Authorization failed.");
         }
 
-        strategies.ForEach(x => {
-            x.HistoricalData = stockData;
-            alpacaClient.SubscribeMinuteAgg(stockSymbol, async y => await x.HandleMinuteAgg(y));
-        });
+        foreach(var stockSymbol in stockSymbols)
+        {
+            var stockData = await alpacaClient.GetStockData(stockSymbol);
+
+            if ((stockData?.Count ?? 0) == 0)
+            {
+                throw new ArgumentException($"You stock symbol {stockSymbol} is not valid.", nameof(stockSymbols));
+            }
+
+            strategy.HistoricalData = stockData;
+            alpacaClient.SubscribeMinuteAgg(stockSymbol, async y => await strategy.HandleMinuteAgg(y));
+        }
 
         while (true)
         {

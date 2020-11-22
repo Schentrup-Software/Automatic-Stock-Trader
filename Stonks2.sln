@@ -11,7 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stonks2.Tests", "Stonks2.Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{90C1458D-7163-45F9-89C0-143DE5F6908F}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\master_stonks220201119200446.yml = .github\workflows\master_stonks220201119200446.yml
 		README.md = README.md
 	EndProjectSection
 EndProject

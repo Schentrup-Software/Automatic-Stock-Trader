@@ -6,7 +6,7 @@ namespace Stonks2.Alpaca
 {
     public interface IAlpacaClient : IDisposable
     {
-        public Task<bool> ConnectStreamApi(string stockSymbol);
+        public Task<bool> ConnectStreamApi();
         public void SubscribeMinuteAgg(string stockSymbol, Action<StockInput> action);
         public Task<decimal> EnsurePositionExists(string stockSymbol, decimal marketValue);
         public Task<decimal> EnsurePostionCleared(string stockSymbol);

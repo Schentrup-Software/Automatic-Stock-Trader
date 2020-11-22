@@ -11,8 +11,8 @@ namespace Stonks2.Alpaca
     {
         private readonly AlpacaConfig _config;
         private readonly IAlpacaTradingClient _alpacaTradingClient;
-        private readonly IPolygonDataClient _polygonDataClient;
-        private readonly IDictionary<string, IPolygonStreamingClient> _polygonStreamingClients;
+        private readonly IAlpacaDataClient _alpacaDataClient;
+        private readonly IAlpacaDataStreamingClient _alpacaStreamingClient;
         
         private bool disposedValue;
 
@@ -22,23 +22,16 @@ namespace Stonks2.Alpaca
             _alpacaTradingClient = config.Run_In_Production
                 ? Environments.Live.GetAlpacaTradingClient(new SecretKey(_config.Live_Key_Id, _config.Secret_Key))
                 : Environments.Paper.GetAlpacaTradingClient(new SecretKey(_config.Paper_Key_Id, _config.Secret_Key));
-            _polygonDataClient = Environments.Live.GetPolygonDataClient(_config.Live_Key_Id);
-            _polygonStreamingClients = new Dictionary<string, IPolygonStreamingClient>();
+            _alpacaDataClient = config.Run_In_Production
+                ? Environments.Live.GetAlpacaDataClient(new SecretKey(_config.Live_Key_Id, _config.Secret_Key))
+                : Environments.Paper.GetAlpacaDataClient(new SecretKey(_config.Paper_Key_Id, _config.Secret_Key));
+            _alpacaStreamingClient = config.Run_In_Production
+                ? Environments.Live.GetAlpacaDataStreamingClient(new SecretKey(_config.Live_Key_Id, _config.Secret_Key))
+                : Environments.Paper.GetAlpacaDataStreamingClient(new SecretKey(_config.Paper_Key_Id, _config.Secret_Key));
         }
 
-        public async Task<bool> ConnectStreamApi(string stockSymbol)
-        {
-            if (_polygonStreamingClients.TryGetValue(stockSymbol, out var client))
-            {
-                return (await client.ConnectAndAuthenticateAsync()) == AuthStatus.Authorized;
-            }
-            else
-            {
-                var newClient = Environments.Live.GetPolygonStreamingClient(_config.Live_Key_Id);
-                _polygonStreamingClients.Add(stockSymbol, newClient);
-                return (await newClient.ConnectAndAuthenticateAsync()) == AuthStatus.Authorized;
-            }
-        }
+        public async Task<bool> ConnectStreamApi()
+            => (await _alpacaStreamingClient.ConnectAndAuthenticateAsync()) == AuthStatus.Authorized;
 
         public void SubscribeMinuteAgg(string stockSymbol, Action<StockInput> action)
         {
@@ -49,8 +42,9 @@ namespace Stonks2.Alpaca
                 StockSymbol = stockSymbol
             });
 
-            _polygonStreamingClients[stockSymbol].MinuteAggReceived += convertedAction;
-            _polygonStreamingClients[stockSymbol].SubscribeMinuteAgg(stockSymbol);
+            var newClient = _alpacaStreamingClient.GetMinuteAggSubscription(stockSymbol);
+            newClient.Received += convertedAction;
+            _alpacaStreamingClient.Subscribe(newClient);
         }
 
         /// <summary>
@@ -102,13 +96,12 @@ namespace Stonks2.Alpaca
         /// <returns>Tuple with training data and test data in that order</returns>
         public async Task<IList<StockInput>> GetStockData(string stockSymbol)
         {
-            var stockData = await _polygonDataClient.ListAggregatesAsync(
-                new AggregatesRequest(stockSymbol, new AggregationPeriod(1, (AggregationPeriodUnit)_config.Aggregation_Period_Unit))
-                .SetInclusiveTimeInterval(DateTime.Now.AddDays(-1 * _config.Days_To_Look_Back), DateTime.Now));
+            var stockData = await _alpacaDataClient.GetBarSetAsync(new BarSetRequest(stockSymbol, (TimeFrame)_config.Aggregation_Period_Unit)
+            {
+                Limit = _config.Number_Of_Minutes_To_Look_Back
+            });
 
-            var trainData = GetStockInputs(stockSymbol, stockData.Items);
-
-            return trainData;
+            return GetStockInputs(stockSymbol, stockData[stockSymbol]);
         }
 
         private static IList<StockInput> GetStockInputs(string stockSymbol, IEnumerable<IAgg> aggs) => aggs
@@ -126,9 +119,9 @@ namespace Stonks2.Alpaca
             {
                 if (disposing)
                 {
-                    _polygonDataClient.Dispose();
-                    _alpacaTradingClient.Dispose();
-                    _polygonStreamingClients.ToList().ForEach(x => x.Value.Dispose());
+                    _alpacaDataClient?.Dispose();
+                    _alpacaTradingClient?.Dispose();
+                    _alpacaStreamingClient?.Dispose();
                 }
 
                 disposedValue = true;

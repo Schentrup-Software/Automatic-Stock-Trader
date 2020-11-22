@@ -44,6 +44,7 @@ namespace Stonks2.Tests.Stategies
             
             var totalMoneyMade = await TestStrategy(strategy);
 
+            if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);        
         }
 
@@ -54,6 +55,7 @@ namespace Stonks2.Tests.Stategies
 
             var totalMoneyMade = await TestStrategy(strategy);
 
+            if(totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
         }
 
@@ -64,6 +66,7 @@ namespace Stonks2.Tests.Stategies
 
             var totalMoneyMade = await TestStrategy(strategy);
 
+            if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
         }
 
