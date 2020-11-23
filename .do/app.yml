@@ -3,6 +3,6 @@ workers:
 - dockerfile_path: Dockerfile
   name: automatic-stock-trader
   github:
-    branch: main
+    branch: master
     deploy_on_push: true
     repo: Schentrup-Software/Automatic-Stock-Trader
