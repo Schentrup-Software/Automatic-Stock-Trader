@@ -22,4 +22,4 @@ jobs:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           
       - name: Update DigitalOcean Config
-        run: doctl apps create -v -c ./.do/app.yml
+        run: doctl apps create -v -c ./.do/app.yml -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
