@@ -64,19 +64,19 @@ namespace Stonks2.Tests.Stategies
         {
             var strategy = new MLStrategy(_mockAlpacaClient.Object, _config.Get<MLConfig>());
 
-            var totalMoneyMade = await TestStrategy(strategy);
+            var totalMoneyMade = await TestStrategy(strategy, true);
 
             if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
         }
 
-        private async Task<decimal> TestStrategy(Strategy strategy)
+        private async Task<decimal> TestStrategy(Strategy strategy, bool useHistoricalData = false)
         {
             var totalMoneyMade = 0m;
 
             foreach (var stock in _config.Get<StockConfig>().Stock_List.Take(5))
             {
-                await TestStrategyOnStock(strategy, stock);
+                await TestStrategyOnStock(strategy, stock, useHistoricalData);
 
                 Debug.WriteLine($"Money made on {stock}: {strategy.MoneyTracker.MoneyMade}");
 
@@ -90,11 +90,11 @@ namespace Stonks2.Tests.Stategies
             return totalMoneyMade;
         }
 
-        private async Task TestStrategyOnStock(Strategy strategy, string stock)
+        private async Task TestStrategyOnStock(Strategy strategy, string stock, bool useHistoricaData)
         {
             var data = (await _alpacaClient.GetStockData(stock)).OrderByDescending(x => x.Time).ToList();
 
-            var sizeOfTestSet = data.Count / 5;
+            var sizeOfTestSet = useHistoricaData ? data.Count / 5 : data.Count;
             var testData = data.Take(sizeOfTestSet);
             strategy.HistoricalData = data.Skip(sizeOfTestSet).ToList();
 

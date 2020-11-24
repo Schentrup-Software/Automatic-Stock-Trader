@@ -5,9 +5,9 @@ namespace Stonks2.Configuration
 {
     public class AlpacaConfig
     {
-        public bool Run_In_Production { get; set; }
-        public string Secret_Key { get; set; }
-        public string Paper_Key_Id { get; set; }
+        public bool Alpaca_Use_Live_Api { get; set; }
+        public string Alpaca_Secret_Key { get; set; }
+        public string Alpaca_Key_Id { get; set; }
         public string Live_Key_Id { get; set; }
         //Minute = 0, Hour = 1, Day = 2, Week = 3, Month = 4, Quarter = 5, Year = 6
         public int Aggregation_Period_Unit { get; set; }

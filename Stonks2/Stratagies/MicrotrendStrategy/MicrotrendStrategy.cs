@@ -20,12 +20,12 @@ namespace Stonks2.Stratagies.MicrotrendStrategy
             //Default to hold
             var result = (bool?) null;
             
-            if (last3Values[0] > last3Values[1] && last3Values[1] > last3Values[2])
+            if (last3Values.Count >= 3 && last3Values[0] > last3Values[1] && last3Values[1] > last3Values[2])
             {
                 //Buy if we have 2 mins of increase
                 result = true;
             } 
-            else if (last3Values[0] < last3Values[1] || last3Values[1] < last3Values[2])
+            else if (last3Values.Count >= 3 && (last3Values[0] < last3Values[1] || last3Values[1] < last3Values[2]))
             {
                 //Sell if any decrease in price
                 result = false;

@@ -8,28 +8,30 @@ This is a command line tool written in .NET 5. After compiling the project using
 you will need to add the follwing enviroment variables:
 
 ```
-"SECRET_KEY": "Alpaca secret key",
-"PAPER_KEY_ID": "Alpaca paper app id",
-"LIVE_KEY_ID": "Alpaca live app id",
+"ALPACA_SECRET_KEY": "Alpaca secret key",
+"ALPACA_KEY_ID": "Alpaca app id",
 ```
 
-The command app runs on the paper api by default. A live app id is still required if using the paper api. If you 
-want to run the app using a live account, you need to set the `SECRET_KEY` to your live app secret key, another 
-enviorment variable `Run_In_Production` to `true`, and there is no need to set the `PAPER_KEY_ID`.
+The command app runs on the paper api by default. If you want to run the app using a live account, you need to set another enviorment variable `Alpaca_Use_Live_Api` to `true`.
+
+To set the strategy to be used and the stocks the strategy should be run on, you will need to do one of two things:
+
+1. Pass in the values as command line arguments. Ex. `stonks2 --stock-symbols-args GE F AAPL --strategy-name-args MeanReversionStrategy`
+2. Pass the values in via a environment variables. Ex. `export Stock_List_Raw="GE, F, AAPL" && export Stock_Strategy="MeanReversionStrategy"`
 
 ## Available strategies
 
-### Mean Reversion Strategy
+### MeanReversionStrategy
 
 Calculates the average price for the past 20 min. If the price is lower than the average, buy the stock. If
 the price is above the average, sell the position.
 
-### Mirotrend Strategy
+### MirotrendStrategy
 
 If the price increases for 2 conseutive minutes, buy the stock. If the price has dropped in the past 2 min, sell the
 position. If the price remained the same, do not buy or sell.
 
-### Machine Learning Stategy
+### MLStategy
 
 Uses ML.Net to create a forecasting model using Singular Spectrum Analysis on the past days price movements. After the 
 model is trained, we use to predict the nex minutes price. If the prediction is the price will go up, we buy. If we predict
