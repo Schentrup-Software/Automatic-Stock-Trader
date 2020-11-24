@@ -20,14 +20,12 @@ namespace Stonks2.Alpaca
         {
             _config = config;
             _alpacaTradingClient = config.Alpaca_Use_Live_Api
-                ? Environments.Live.GetAlpacaTradingClient(new SecretKey(_config.Live_Key_Id, _config.Alpaca_Secret_Key))
-                : Environments.Paper.GetAlpacaTradingClient(new SecretKey(_config.Alpaca_Key_Id, _config.Alpaca_Secret_Key));
+                ? Environments.Live.GetAlpacaTradingClient(new SecretKey(_config.Alpaca_Live_App_Id, _config.Alpaca_Live_Secret_Key))
+                : Environments.Paper.GetAlpacaTradingClient(new SecretKey(_config.Alpaca_Paper_App_Id, _config.Alpaca_Paper_Secret_Key));
             _alpacaDataClient = config.Alpaca_Use_Live_Api
-                ? Environments.Live.GetAlpacaDataClient(new SecretKey(_config.Live_Key_Id, _config.Alpaca_Secret_Key))
-                : Environments.Paper.GetAlpacaDataClient(new SecretKey(_config.Alpaca_Key_Id, _config.Alpaca_Secret_Key));
-            _alpacaStreamingClient = config.Alpaca_Use_Live_Api
-                ? Environments.Live.GetAlpacaDataStreamingClient(new SecretKey(_config.Live_Key_Id, _config.Alpaca_Secret_Key))
-                : Environments.Paper.GetAlpacaDataStreamingClient(new SecretKey(_config.Alpaca_Key_Id, _config.Alpaca_Secret_Key));
+                ? Environments.Live.GetAlpacaDataClient(new SecretKey(_config.Alpaca_Live_App_Id, _config.Alpaca_Live_Secret_Key))
+                : Environments.Paper.GetAlpacaDataClient(new SecretKey(_config.Alpaca_Paper_App_Id, _config.Alpaca_Paper_Secret_Key));
+            _alpacaStreamingClient = Environments.Live.GetAlpacaDataStreamingClient(new SecretKey(_config.Alpaca_Live_App_Id, _config.Alpaca_Live_Secret_Key));
         }
 
         public async Task<bool> ConnectStreamApi()

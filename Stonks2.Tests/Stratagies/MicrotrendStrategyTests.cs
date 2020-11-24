@@ -52,6 +52,20 @@ namespace Stonks2.Tests.Stategies
         }
 
         [TestMethod]
+        public async Task ShouldBuyStock_NotEnoughData_HoldPosition()
+        {
+            var now = DateTime.Now;
+            _strategy.HistoricalData = new List<StockInput>()
+            {
+                new StockInput {ClosingPrice = 1, Time = now.AddMinutes(-1)},
+            };
+
+            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 10, Time = now });
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
         [DataRow(1, 2, 3, 2)]
         [DataRow(1, 3, 2, 3)]
         [DataRow(1, 4, 3, 2)]

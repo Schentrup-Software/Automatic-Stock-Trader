@@ -13,20 +13,20 @@ using Stonks2.Stratagies.NewsStrategy;
 
 class Program
 {
-    /// <param name="stockSymbolsArgs">A list of the stock symbols to employ the trading strategies on.</param>
-    /// <param name="strategyNameArgs">A strategy to employ on the stock. Possible list list of strategies: MeanReversionStrategy, MLStrategy, and MicrotrendStrategy.</param>
-    static async Task<int> Main(string[] stockSymbolsArgs = null, string strategyNameArgs = null)
+    /// <param name="stockSymbols">A list of the stock symbols to employ the trading strategies on.</param>
+    /// <param name="strategyName">A strategy to employ on the stock. Possible list list of strategies: MeanReversionStrategy, MLStrategy, and MicrotrendStrategy.</param>
+    static async Task<int> Main(string[] stockSymbols = null, string strategyName = null)
     {
         var args = new Dictionary<string, string>();
-        
-        if (!string.IsNullOrWhiteSpace(strategyNameArgs))
+
+        if (!string.IsNullOrWhiteSpace(strategyName))
         {
-            args.Add("Stock_Strategy", strategyNameArgs);
+            args.Add("Stock_Strategy", strategyName);
         }
 
-        if (stockSymbolsArgs?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
+        if (stockSymbols?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("Stock_List_Raw", stockSymbolsArgs.Aggregate((x, y) => $"{x}, {y}"));
+            args.Add("Stock_List_Raw", stockSymbols.Aggregate((x, y) => $"{x}, {y}"));
         }
 
         //Config
@@ -37,18 +37,30 @@ class Program
             .Build();
 
         var alpacaConfig = config.Get<AlpacaConfig>();
-        var alpacaClient = new AlpacaClient(alpacaConfig);
         var stockConfig = config.Get<StockConfig>();
+        var mlConfig = config.Get<MLConfig>();
+        
+        using var alpacaClient = new AlpacaClient(alpacaConfig);
+        
+        await AutoTradeStocks(alpacaClient, stockConfig, mlConfig);
 
+        while (true)
+        {
+            await Task.Delay(600000);
+        }
+    }
+
+    private static async Task AutoTradeStocks(IAlpacaClient alpacaClient, StockConfig stockConfig, MLConfig mlConfig)
+    {
         if ((stockConfig.Stock_List?.Count ?? 0) == 0)
         {
-            throw new ArgumentException("You must pass an least one valid stock symbol", nameof(stockSymbolsArgs));
+            throw new ArgumentException("You must pass an least one valid stock symbol", nameof(stockConfig));
         }
 
         var strategies = new List<Strategy>()
         {
             new MeanReversionStrategy(alpacaClient),
-            new MLStrategy(alpacaClient, config.Get<MLConfig>()),
+            new MLStrategy(alpacaClient, mlConfig),
             new MicrotrendStrategy(alpacaClient),
             //new NewsStrategy(alpacaClient, config.Get<NewsSearchConfig>()),
         };
@@ -58,7 +70,7 @@ class Program
 
         if (strategy == null)
         {
-            throw new ArgumentException($"Could not find any strategies with the name '{stockConfig.Stock_Strategy}'", nameof(strategyNameArgs));
+            throw new ArgumentException($"Could not find any strategies with the name '{stockConfig.Stock_Strategy}'", nameof(stockConfig));
         }
 
         if (!await alpacaClient.ConnectStreamApi())
@@ -66,22 +78,17 @@ class Program
             throw new UnauthorizedAccessException("Failed to connect to streaming API. Authorization failed.");
         }
 
-        foreach(var stockSymbol in stockConfig.Stock_List)
+        foreach (var stockSymbol in stockConfig.Stock_List)
         {
             var stockData = await alpacaClient.GetStockData(stockSymbol);
 
             if ((stockData?.Count ?? 0) == 0)
             {
-                throw new ArgumentException($"You stock symbol {stockSymbol} is not valid.", nameof(stockSymbolsArgs));
+                throw new ArgumentException($"You stock symbol {stockSymbol} is not valid.", nameof(stockConfig));
             }
 
             strategy.HistoricalData = stockData;
             alpacaClient.SubscribeMinuteAgg(stockSymbol, async y => await strategy.HandleMinuteAgg(y));
-        }
-
-        while (true)
-        {
-            await Task.Delay(600000);
         }
     }
 }
