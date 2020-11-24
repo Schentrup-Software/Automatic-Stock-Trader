@@ -4,6 +4,14 @@ A framework for building and testing minute to minute automatic trading using th
 
 ## How to run
 
+### Run using Digital Ocean
+
+Click the button below! You can customize the strategy and stock list using env vars on deployment (examples below). You will need to add your own Alpaca app ids and secret keys to the env vars through the UI.
+
+ [![Deploy to DO](https://mp-assets1.sfo2.digitaloceanspaces.com/deploy-to-do/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/Schentrup-Software/Automatic-Stock-Trader/tree/master)
+ 
+### Locally or on another server
+
 This is a command line tool written in .NET 5. After compiling the project using Visual Studio or .NET cli,
 you will need to add the follwing enviroment variables:
 
