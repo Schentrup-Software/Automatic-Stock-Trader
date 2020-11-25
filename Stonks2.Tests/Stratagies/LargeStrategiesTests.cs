@@ -1,17 +1,17 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Stonks2.Configuration;
-using Stonks2.Stratagies;
-using Stonks2.Alpaca;
+using AutomaticStockTrader.Configuration;
+using AutomaticStockTrader.Stratagies;
+using AutomaticStockTrader.Alpaca;
 using System.Linq;
 using Moq;
 using System.Threading.Tasks;
-using Stonks2.Stratagies.MLStrategy;
-using Stonks2.Stratagies.MicrotrendStrategy;
+using AutomaticStockTrader.Stratagies.MLStrategy;
+using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
 using System.Diagnostics;
-using Stonks2.Stratagies.MeanReversionStrategy;
+using AutomaticStockTrader.Stratagies.MeanReversionStrategy;
 
-namespace Stonks2.Tests.Stategies
+namespace AutomaticStockTrader.Tests.Stategies
 {
     [TestClass, TestCategory("Large")]
     public class LargeStrategiesTests

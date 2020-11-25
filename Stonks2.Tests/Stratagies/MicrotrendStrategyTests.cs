@@ -1,12 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Stonks2.Alpaca;
-using Stonks2.Stratagies.MicrotrendStrategy;
+using AutomaticStockTrader.Alpaca;
+using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Stonks2.Tests.Stategies
+namespace AutomaticStockTrader.Tests.Stategies
 {
     [TestClass, TestCategory("Small")]
     public class MicrotrendStrategyTests

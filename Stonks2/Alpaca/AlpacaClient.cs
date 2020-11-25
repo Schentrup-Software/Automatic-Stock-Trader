@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Alpaca.Markets;
-using Stonks2.Configuration;
+using AutomaticStockTrader.Configuration;
 
-namespace Stonks2.Alpaca
+namespace AutomaticStockTrader.Alpaca
 {
     public class AlpacaClient : IAlpacaClient
     {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stonks2.Alpaca;
+using AutomaticStockTrader.Alpaca;
 
-namespace Stonks2.Stratagies
+namespace AutomaticStockTrader.Stratagies
 {
     public abstract class Strategy : IDisposable
     {

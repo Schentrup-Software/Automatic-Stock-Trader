@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Stonks2.Alpaca;
-using Stonks2.Configuration;
-using Stonks2.Stratagies;
-using Stonks2.Stratagies.MeanReversionStrategy;
-using Stonks2.Stratagies.MicrotrendStrategy;
-using Stonks2.Stratagies.MLStrategy;
-using Stonks2.Stratagies.NewsStrategy;
+using AutomaticStockTrader.Alpaca;
+using AutomaticStockTrader.Configuration;
+using AutomaticStockTrader.Stratagies;
+using AutomaticStockTrader.Stratagies.MeanReversionStrategy;
+using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
+using AutomaticStockTrader.Stratagies.MLStrategy;
+using AutomaticStockTrader.Stratagies.NewsStrategy;
 
 class Program
 {

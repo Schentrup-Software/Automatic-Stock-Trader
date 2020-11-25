@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stonks2.Alpaca;
+using AutomaticStockTrader.Alpaca;
 
-namespace Stonks2.Stratagies.MicrotrendStrategy
+namespace AutomaticStockTrader.Stratagies.MicrotrendStrategy
 {
     public class MicrotrendStrategy : Strategy
     {

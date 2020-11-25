@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Stonks2.Configuration
+namespace AutomaticStockTrader.Configuration
 {
     public class StockConfig
     {

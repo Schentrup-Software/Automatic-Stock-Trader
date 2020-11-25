@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.ML.Data;
 
-namespace Stonks2
+namespace AutomaticStockTrader
 {
     public record StockInput
     {

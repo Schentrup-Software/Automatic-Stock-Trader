@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Stonks2.Alpaca
+namespace AutomaticStockTrader.Alpaca
 {
     public interface IAlpacaClient : IDisposable
     {

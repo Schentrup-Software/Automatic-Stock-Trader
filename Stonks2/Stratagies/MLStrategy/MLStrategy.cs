@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stonks2.Alpaca;
-using Stonks2.Configuration;
+using AutomaticStockTrader.Alpaca;
+using AutomaticStockTrader.Configuration;
 
-namespace Stonks2.Stratagies.MLStrategy
+namespace AutomaticStockTrader.Stratagies.MLStrategy
 {
     public class MLStrategy : Strategy
     {

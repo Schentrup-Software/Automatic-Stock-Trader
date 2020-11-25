@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.TimeSeries;
-using Stonks2.Configuration;
+using AutomaticStockTrader.Configuration;
 
-namespace Stonks2
+namespace AutomaticStockTrader
 {
     public class ModelBuilder
     {

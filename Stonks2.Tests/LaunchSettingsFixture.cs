@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stonks2.Tests
+namespace AutomaticStockTrader.Tests
 {
     public static class LaunchSettingsFixture
     {

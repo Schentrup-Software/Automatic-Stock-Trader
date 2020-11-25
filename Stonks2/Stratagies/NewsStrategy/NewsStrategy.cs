@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.CognitiveServices.Search.NewsSearch;
-using Stonks2.Alpaca;
-using Stonks2.Configuration;
+using AutomaticStockTrader.Alpaca;
+using AutomaticStockTrader.Configuration;
 
-namespace Stonks2.Stratagies.NewsStrategy
+namespace AutomaticStockTrader.Stratagies.NewsStrategy
 {
     public class NewsStrategy : Strategy
     {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Stonks2.Alpaca;
+using AutomaticStockTrader.Alpaca;
 
-namespace Stonks2.Stratagies.MeanReversionStrategy
+namespace AutomaticStockTrader.Stratagies.MeanReversionStrategy
 {
     public class MeanReversionStrategy : Strategy
     {

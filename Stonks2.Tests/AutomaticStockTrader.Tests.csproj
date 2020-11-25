@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stonks2\Stonks2.csproj" />
+    <ProjectReference Include="..\Stonks2\AutomaticStockTrader.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace Stonks2.Configuration
+﻿namespace AutomaticStockTrader.Configuration
 {
     public class MLConfig
     {
