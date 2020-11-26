@@ -44,20 +44,20 @@ class Program
         var mlConfig = config.Get<MLConfig>();
         
         using var alpacaClient = new AlpacaClient(alpacaConfig);
-
+        /*
         using var repo = new TrackingRepository(new DatabaseContext(new DatabaseConfig()));
 
         await repo.AddOrder("Bomb", "GE", DateTime.UtcNow);
 
         Console.WriteLine(repo.GetOrders().Select(x => $"{x.Id} {x.StockSymbol} {x.Strategy}").Aggregate((x, y) => $"{x}, {y}"));
-        return 0;
-        /*await AutoTradeStocks(alpacaClient, stockConfig, mlConfig);
+        return 0;*/
+        await AutoTradeStocks(alpacaClient, stockConfig, mlConfig);
 
         while (true)
         {
             await Task.Delay(600000);
         }
-        */
+        
     }
 
     private static async Task AutoTradeStocks(IAlpacaClient alpacaClient, StockConfig stockConfig, MLConfig mlConfig)
