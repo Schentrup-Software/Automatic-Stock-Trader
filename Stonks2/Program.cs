@@ -10,6 +10,9 @@ using AutomaticStockTrader.Stratagies.MeanReversionStrategy;
 using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
 using AutomaticStockTrader.Stratagies.MLStrategy;
 using AutomaticStockTrader.Stratagies.NewsStrategy;
+using AutomaticStockTrader.Repository.Configuration;
+using AutomaticStockTrader.Repository;
+using AutomaticStockTrader.Repository.Models;
 
 class Program
 {
@@ -41,13 +44,20 @@ class Program
         var mlConfig = config.Get<MLConfig>();
         
         using var alpacaClient = new AlpacaClient(alpacaConfig);
-        
-        await AutoTradeStocks(alpacaClient, stockConfig, mlConfig);
+
+        using var repo = new TrackingRepository(new DatabaseContext(new DatabaseConfig()));
+
+        await repo.AddOrder("Bomb", "GE", DateTime.UtcNow);
+
+        Console.WriteLine(repo.GetOrders().Select(x => $"{x.Id} {x.StockSymbol} {x.Strategy}").Aggregate((x, y) => $"{x}, {y}"));
+        return 0;
+        /*await AutoTradeStocks(alpacaClient, stockConfig, mlConfig);
 
         while (true)
         {
             await Task.Delay(600000);
         }
+        */
     }
 
     private static async Task AutoTradeStocks(IAlpacaClient alpacaClient, StockConfig stockConfig, MLConfig mlConfig)

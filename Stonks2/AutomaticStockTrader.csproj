@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <PackageReference Include="Alpaca.Markets" Version="3.9.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
@@ -22,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj" />
+    <ProjectReference Include="..\Stonks2.Repository\AutomaticStockTrader.Repository.csproj" />
   </ItemGroup>
 
   <ItemGroup>
