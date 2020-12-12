@@ -1,24 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.CognitiveServices.Search.NewsSearch;
-using AutomaticStockTrader.Alpaca;
-using AutomaticStockTrader.Configuration;
+using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Core.Configuration;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository;
 
-namespace AutomaticStockTrader.Stratagies.NewsStrategy
+namespace AutomaticStockTrader.Core.Strategies.NewsStrategy
 {
     public class NewsStrategy : Strategy
     {
         private readonly NewsSearchConfig _config;
-        private DateTime? _lastCallTime;
-        private bool _lastReturn;
 
-        public NewsStrategy(IAlpacaClient client, NewsSearchConfig config) : base(client)
+        public NewsStrategy(IAlpacaClient client, ITrackingRepository trackingRepository, decimal percentageOfEquityToAllocate, NewsSearchConfig config) 
+            : base(client, trackingRepository, TradingFrequency.Day, percentageOfEquityToAllocate)
         {
             _config = config;
-            _lastReturn = false;
         }
 
         public async Task DoStuff()
@@ -40,20 +38,13 @@ namespace AutomaticStockTrader.Stratagies.NewsStrategy
 
         public override async Task<bool?> ShouldBuyStock(StockInput newData)
         {
-            if (!_lastCallTime.HasValue || _lastCallTime < DateTime.Now.AddDays(-1))
+            var client = new NewsSearchClient(new ApiKeyServiceClientCredentials(_config.News_Search_Api_Key))
             {
-                var client = new NewsSearchClient(new ApiKeyServiceClientCredentials(_config.News_Search_Api_Key))
-                {
-                    Endpoint = _config.News_Search_Endpoint
-                };
+                Endpoint = _config.News_Search_Endpoint
+            };
 
-                var result = await client.News.SearchAsync(query: newData.StockSymbol, market: "en-US", freshness: "Day", count: 100);
-                return false;
-            }
-            else
-            {
-                return _lastReturn;
-            }
+            var result = await client.News.SearchAsync(query: newData.StockSymbol, market: "en-US", freshness: "Day", count: 100);
+            return false;
         }
     }
 }

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Alpaca;
+using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository;
 
-namespace AutomaticStockTrader.Stratagies.MicrotrendStrategy
+namespace AutomaticStockTrader.Core.Strategies.MicrotrendStrategy
 {
     public class MicrotrendStrategy : Strategy
     {
-        public MicrotrendStrategy(IAlpacaClient client) : base(client) { }
+        public MicrotrendStrategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency tradingFrequency, decimal percentageOfEquityToAllocate) 
+            : base(alpacaClient, trackingRepository, tradingFrequency, percentageOfEquityToAllocate) { }
 
         public override Task<bool?> ShouldBuyStock(StockInput newData)
         {

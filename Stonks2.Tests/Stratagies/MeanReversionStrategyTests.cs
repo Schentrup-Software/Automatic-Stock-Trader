@@ -1,8 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using AutomaticStockTrader.Alpaca;
-using AutomaticStockTrader.Stratagies.MeanReversionStrategy;
-using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestInitialize]
         public void SetUp()
         {
-            _strategy = new MeanReversionStrategy(new Mock<IAlpacaClient>().Object);
+            _strategy = new MeanReversionStrategy(new Mock<IAlpacaClient>().Object, new Mock<ITrackingRepository>().Object, TradingFrequency.Minute, 0.1m);
             _histoicData = Enumerable.Range(1, 20).Select(x => new StockInput
             {
                 ClosingPrice = x % 3,

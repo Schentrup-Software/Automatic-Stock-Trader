@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Alpaca;
-using AutomaticStockTrader.Configuration;
+using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Core.Configuration;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository;
 
-namespace AutomaticStockTrader.Stratagies.MLStrategy
+namespace AutomaticStockTrader.Core.Strategies.MLStrategy
 {
     public class MLStrategy : Strategy
     {
         private readonly MLConfig _config;
 
-        public MLStrategy(IAlpacaClient client, MLConfig config) : base(client)
+        public MLStrategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency tradingFrequency, decimal percentageOfEquityToAllocate, MLConfig config) 
+            : base(alpacaClient, trackingRepository, tradingFrequency, percentageOfEquityToAllocate)
         {
             _config = config;
         }

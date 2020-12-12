@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alpaca.Markets" Version="3.9.1" />
+    <PackageReference Include="Microsoft.ML" Version="1.5.2" />
+    <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.5.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutomaticStockTrader.Domain\AutomaticStockTrader.Domain.csproj" />
+    <ProjectReference Include="..\Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj" />
+    <ProjectReference Include="..\Stonks2.Repository\AutomaticStockTrader.Repository.csproj" />
+  </ItemGroup>
+
+</Project>

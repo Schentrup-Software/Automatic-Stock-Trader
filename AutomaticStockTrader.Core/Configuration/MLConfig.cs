@@ -1,4 +1,4 @@
-﻿namespace AutomaticStockTrader.Configuration
+﻿namespace AutomaticStockTrader.Core.Configuration
 {
     public class MLConfig
     {

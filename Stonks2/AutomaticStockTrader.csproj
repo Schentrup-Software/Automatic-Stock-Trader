@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Alpaca.Markets" Version="3.9.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -18,14 +17,12 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="Microsoft.ML" Version="1.5.2" />
-    <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.5.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.20371.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj" />
+    <ProjectReference Include="..\AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj" />
     <ProjectReference Include="..\Stonks2.Repository\AutomaticStockTrader.Repository.csproj" />
   </ItemGroup>
 

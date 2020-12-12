@@ -1,7 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using AutomaticStockTrader.Alpaca;
-using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,7 +18,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestInitialize]
         public void SetUp()
         {
-            _strategy = new MicrotrendStrategy(new Mock<IAlpacaClient>().Object);
+            _strategy = new MicrotrendStrategy(new Mock<IAlpacaClient>().Object, new Mock<ITrackingRepository>().Object, TradingFrequency.Minute, 0.1m);
         }
 
         [TestMethod]

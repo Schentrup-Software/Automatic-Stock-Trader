@@ -1,15 +1,12 @@
-﻿using AutomaticStockTrader.Repository.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace AutomaticStockTrader.Repository
 {
     public interface ITrackingRepository : IDisposable
     {
-        public Task AddOrder(string strategy, string stockSymbol, DateTime orderPlacedTime);
-        public IEnumerable<Order> GetOrders();
+        public Task AddPendingOrder(Domain.StrategysStock postion, Domain.Order order);
+        public Task CompleteOrder(string stockSymbol, decimal price, long sharesBought);
+        public Task<Domain.Position> GetOrCreateEmptyPosition(Domain.StrategysStock strategysStock);
     }
 }

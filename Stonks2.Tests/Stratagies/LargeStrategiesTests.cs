@@ -1,15 +1,19 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AutomaticStockTrader.Configuration;
-using AutomaticStockTrader.Stratagies;
-using AutomaticStockTrader.Alpaca;
 using System.Linq;
 using Moq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Stratagies.MLStrategy;
-using AutomaticStockTrader.Stratagies.MicrotrendStrategy;
 using System.Diagnostics;
-using AutomaticStockTrader.Stratagies.MeanReversionStrategy;
+using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Core.Configuration;
+using AutomaticStockTrader.Core.Strategies;
+using AutomaticStockTrader.Core.Strategies.MLStrategy;
+using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
+using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
+using AutomaticStockTrader.Repository;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository.Models;
+using Order = AutomaticStockTrader.Domain.Order;
 
 namespace AutomaticStockTrader.Tests.Stategies
 {
@@ -18,6 +22,8 @@ namespace AutomaticStockTrader.Tests.Stategies
     {
         private IAlpacaClient _alpacaClient;
         private Mock<IAlpacaClient> _mockAlpacaClient;
+        private StockContext _context;
+        private ITrackingRepository _repo;
         private IConfigurationRoot _config;
 
         [TestInitialize]
@@ -31,16 +37,26 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             _alpacaClient = new AlpacaClient(_config.Get<AlpacaConfig>());
             _mockAlpacaClient = new Mock<IAlpacaClient>();
+            _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(100_000m);
+
+            _context = new StockContext();
+            _context.Database.EnsureDeleted();
+            _context.Database.EnsureCreated();
+
+            _repo = new TrackingRepository(_context);
         }
 
         [TestCleanup]
         public void CleanUp()
-            => _alpacaClient?.Dispose();
+        {
+            _alpacaClient?.Dispose();
+            _repo?.Dispose();
+        }
 
         [TestMethod]
         public async Task ShouldBuyStock_MeanReversionStrategy_MakesMoney()
         {
-            var strategy = new MeanReversionStrategy(_mockAlpacaClient.Object);
+            var strategy = new MeanReversionStrategy(_mockAlpacaClient.Object, _repo, TradingFrequency.Minute, 0.1m);
             
             var totalMoneyMade = await TestStrategy(strategy);
 
@@ -51,7 +67,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestMethod]
         public async Task ShouldBuyStock_MicrotrendStrategy_MakesMoney()
         {
-            var strategy = new MicrotrendStrategy(_mockAlpacaClient.Object);
+            var strategy = new MicrotrendStrategy(_mockAlpacaClient.Object, _repo, TradingFrequency.Minute, 0.1m);
 
             var totalMoneyMade = await TestStrategy(strategy);
 
@@ -62,7 +78,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestMethod]
         public async Task ShouldBuyStock_MLStrategy_MakesMoney()
         {
-            var strategy = new MLStrategy(_mockAlpacaClient.Object, _config.Get<MLConfig>());
+            var strategy = new MLStrategy(_mockAlpacaClient.Object, _repo, TradingFrequency.Minute, 0.1m, _config.Get<MLConfig>());
 
             var totalMoneyMade = await TestStrategy(strategy, true);
 
@@ -78,12 +94,10 @@ namespace AutomaticStockTrader.Tests.Stategies
             {
                 await TestStrategyOnStock(strategy, stock, useHistoricalData);
 
-                Debug.WriteLine($"Money made on {stock}: {strategy.MoneyTracker.MoneyMade}");
-
-                totalMoneyMade += strategy.MoneyTracker.MoneyMade;
-                strategy.MoneyTracker.MoneyMade = 0;
-                strategy.MoneyTracker.CostOfLastPosition = 0;
-
+                var moneyMade = _context.Orders.Where(x => x.Position.StockSymbol == stock).Select(x => x.ActualSharesBought.Value * x.ActualCostPerShare.Value).Aggregate((x, y) => x + y);
+                Debug.WriteLine($"Money made on {stock}: {moneyMade}");
+             
+                totalMoneyMade += moneyMade;
                 Debug.WriteLine($"Total so far: {totalMoneyMade}");
             }
 
@@ -98,23 +112,13 @@ namespace AutomaticStockTrader.Tests.Stategies
             var testData = data.Take(sizeOfTestSet);
             strategy.HistoricalData = data.Skip(sizeOfTestSet).ToList();
 
-            var ownTheStock = false;
             foreach (var min in testData)
             {
-                bool? calledBuy = null;
-                //Mock out client so if we want to buy or sell, we are buying or selling only one share
                 _mockAlpacaClient
-                    .Setup(x => x.EnsurePositionExists(min.StockSymbol, min.ClosingPrice))
-                    .Callback(() => calledBuy = true)
-                    .ReturnsAsync(ownTheStock ? 0 : min.ClosingPrice);
-                _mockAlpacaClient
-                    .Setup(x => x.EnsurePostionCleared(min.StockSymbol))
-                    .Callback(() => calledBuy = false)
-                    .ReturnsAsync(ownTheStock ? min.ClosingPrice : 0);
+                    .Setup(x => x.PlaceOrder(It.Is<StrategysStock>(x => x.StockSymbol == min.StockSymbol), It.IsAny<Order>()))
+                    .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(min.StockSymbol, min.ClosingPrice, o.SharesBought));
 
                 await strategy.HandleMinuteAgg(min);
-
-                ownTheStock = calledBuy ?? ownTheStock;
             }
         }
     }

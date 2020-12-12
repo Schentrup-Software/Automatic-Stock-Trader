@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Alpaca;
+using AutomaticStockTrader.Core.Alpaca;
+using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Repository;
 
-namespace AutomaticStockTrader.Stratagies.MeanReversionStrategy
+namespace AutomaticStockTrader.Core.Strategies.MeanReversionStrategy
 {
     public class MeanReversionStrategy : Strategy
     {
-        public MeanReversionStrategy(IAlpacaClient client) : base(client) { }
+        public MeanReversionStrategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency tradingFrequency, decimal percentageOfEquityToAllocate) 
+            : base(alpacaClient, trackingRepository, tradingFrequency, percentageOfEquityToAllocate) { }
 
         public override Task<bool?> ShouldBuyStock(StockInput newData)
         {

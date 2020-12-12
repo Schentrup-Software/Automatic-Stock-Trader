@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AutomaticStockTrader.Repository.Models
 {
@@ -9,16 +8,18 @@ namespace AutomaticStockTrader.Repository.Models
         [Key]
         public Guid Id { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
-        public string Strategy { get; set; }
+        public Guid PositionId { get; set; }
 
-        public DateTime OrderPlaced { get; set; }
+        public DateTimeOffset OrderPlaced { get; set; }
 
-        [Column(TypeName = "varchar(10)")]
-        public string StockSymbol { get; set; }
+        public long AttemptedSharesBought { get; set; }
 
-        public decimal? SharesBought { get; set; }
+        public decimal AttemptedCostPerShare { get; set; }
 
-        public decimal? CostPerShare { get; set; }
+        public long? ActualSharesBought { get; set; }
+
+        public decimal? ActualCostPerShare { get; set; }
+
+        public virtual StratagysStock Position { get; set; }
     }
 }

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.TimeSeries;
-using AutomaticStockTrader.Configuration;
+using AutomaticStockTrader.Core.Configuration;
 
-namespace AutomaticStockTrader
+namespace AutomaticStockTrader.Core
 {
     public class ModelBuilder
     {

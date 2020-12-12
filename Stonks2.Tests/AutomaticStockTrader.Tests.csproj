@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj" />
+    <ProjectReference Include="..\AutomaticStockTrader.Domain\AutomaticStockTrader.Domain.csproj" />
+    <ProjectReference Include="..\Stonks2.Repository\AutomaticStockTrader.Repository.csproj" />
     <ProjectReference Include="..\Stonks2\AutomaticStockTrader.csproj" />
   </ItemGroup>
 
