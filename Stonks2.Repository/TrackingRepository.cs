@@ -70,14 +70,15 @@ namespace AutomaticStockTrader.Repository
                 });
 
                 await _context.SaveChangesAsync();
+                strategysStockDb = GetStatagysStockFromDb(strategysStock);
             }
 
             return new Domain.Position
             {
                 StockSymbol = strategysStockDb.StockSymbol,
                 NumberOfShares = strategysStockDb?.Orders
-                        .Select(x => x.ActualSharesBought ?? 0)
-                        .Aggregate((x, y) => x + y) ?? 0
+                        ?.Select(x => x.ActualSharesBought ?? 0)
+                        ?.Aggregate((x, y) => x + y) ?? 0
             };
         }
 

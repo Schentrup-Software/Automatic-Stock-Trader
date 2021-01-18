@@ -67,8 +67,8 @@ namespace AutomaticStockTrader.Core.Strategies
                     OrderPlacedTime = DateTime.UtcNow
                 };
 
-                await _alpacaClient.PlaceOrder(stockStrategy, order);
                 await _trackingRepository.AddPendingOrder(stockStrategy, order);
+                await _alpacaClient.PlaceOrder(stockStrategy, order);
             }
         }
 
@@ -88,8 +88,8 @@ namespace AutomaticStockTrader.Core.Strategies
                     OrderPlacedTime = DateTime.UtcNow
                 };
 
-                await _alpacaClient.PlaceOrder(stockStrategy, order);
                 await _trackingRepository.AddPendingOrder(stockStrategy, order);
+                await _alpacaClient.PlaceOrder(stockStrategy, order);
             }
         }
 

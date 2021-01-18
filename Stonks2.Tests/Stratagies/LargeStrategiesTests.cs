@@ -94,7 +94,12 @@ namespace AutomaticStockTrader.Tests.Stategies
             {
                 await TestStrategyOnStock(strategy, stock, useHistoricalData);
 
-                var moneyMade = _context.Orders.Where(x => x.Position.StockSymbol == stock).Select(x => x.ActualSharesBought.Value * x.ActualCostPerShare.Value).Aggregate((x, y) => x + y);
+                var orders = _context.Orders
+                    .Where(x => x.Position.StockSymbol == stock)
+                    .Select(x => x.ActualSharesBought.Value * x.ActualCostPerShare.Value)
+                    .AsEnumerable();
+
+                var moneyMade = orders.Any() ? orders.Aggregate((x, y) => x + y) : 0;
                 Debug.WriteLine($"Money made on {stock}: {moneyMade}");
              
                 totalMoneyMade += moneyMade;
@@ -116,7 +121,7 @@ namespace AutomaticStockTrader.Tests.Stategies
             {
                 _mockAlpacaClient
                     .Setup(x => x.PlaceOrder(It.Is<StrategysStock>(x => x.StockSymbol == min.StockSymbol), It.IsAny<Order>()))
-                    .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(min.StockSymbol, min.ClosingPrice, o.SharesBought));
+                    .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(min.StockSymbol, min.ClosingPrice, o.SharesBought).Wait());
 
                 await strategy.HandleMinuteAgg(min);
             }
