@@ -55,8 +55,15 @@ class Program
         
         using var alpacaClient = new AlpacaClient(alpacaConfig);
 
-        var context = new StockContext();
-        context.Database.Migrate();
+        var context = new StockContext(dbConfig);
+        if (!string.IsNullOrWhiteSpace(dbConfig.Db_Connection_String))
+        {
+            await context.Database.MigrateAsync();
+        }
+        else
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
 
         using var repo = new TrackingRepository(context);
 

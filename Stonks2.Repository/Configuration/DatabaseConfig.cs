@@ -2,6 +2,8 @@
 {
     public class DatabaseConfig
     {
-        public string Db_Connection_String { get; set; } = "Server=localhost\\SQLEXPRESS;Database=AutomaticStockTrader_Stocks;Trusted_Connection=True;";
+        public string Db_Connection_String { get; set; }
+
+        public const string DEFAULT_CONNECTION_STRING = @"Data Source=Application.db;Cache=Shared";
     }
 }

@@ -40,7 +40,6 @@ namespace AutomaticStockTrader.Tests.Stategies
             _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(100_000m);
 
             _context = new StockContext();
-            _context.Database.EnsureDeleted();
             _context.Database.EnsureCreated();
 
             _repo = new TrackingRepository(_context);

@@ -17,7 +17,14 @@ namespace AutomaticStockTrader.Repository.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(_config.Db_Connection_String);
+            if (!string.IsNullOrWhiteSpace(_config.Db_Connection_String))
+            {
+                optionsBuilder.UseSqlServer(_config.Db_Connection_String);
+            }
+            else
+            {
+                optionsBuilder.UseSqlite(DatabaseConfig.DEFAULT_CONNECTION_STRING);
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
