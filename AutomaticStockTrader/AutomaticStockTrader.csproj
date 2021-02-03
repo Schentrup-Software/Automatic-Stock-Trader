@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj" />
-    <ProjectReference Include="..\Stonks2.Repository\AutomaticStockTrader.Repository.csproj" />
+    <ProjectReference Include="..\AutomaticStockTrader.Repository\AutomaticStockTrader.Repository.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -23,7 +23,7 @@ namespace AutomaticStockTrader.Core.Alpaca
         {
             _config = config.Value;
             var env = _config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
-            var key = _config.Alpaca_Use_Live_Api ? new SecretKey(_config.Alpaca_Live_App_Id, _config.Alpaca_Live_Secret_Key) : new SecretKey(_config.Alpaca_Paper_App_Id, _config.Alpaca_Paper_Secret_Key);
+            var key = new SecretKey(_config.Alpaca_App_Id, _config.Alpaca_Secret_Key);
             
             _alpacaTradingClient = env.GetAlpacaTradingClient(key);
             _alpacaTradingStreamingClient = env.GetAlpacaStreamingClient(key);

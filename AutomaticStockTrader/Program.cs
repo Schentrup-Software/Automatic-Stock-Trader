@@ -22,7 +22,7 @@ class Program
 {
     /// <param name="stockSymbols">A list of the stock symbols to employ the trading strategies on.</param>
     /// <param name="strategyNames">A list of strategies to employ on the stock. Possible list of strategies: MeanReversionStrategy, MLStrategy, and MicrotrendStrategy.</param>
-    /// <param name="tradingFreqencies">A list of frequencies to run the stragies. The list associates the position of the frequency the stragy in that same position.</param>
+    /// <param name="tradingFreqencies">A list of frequencies to run the stragies. The list associates the position of the frequency to the strategy in that same position. Possible values are Minute, Hour, Day</param>
     static async Task<int> Main(string[] stockSymbols = null, string[] strategyNames = null, string[] tradingFreqencies = null)
     {
         Console.WriteLine("App starting");

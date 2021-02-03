@@ -3,22 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader", "Stonks2\AutomaticStockTrader.csproj", "{C15A3368-F71E-4A65-9762-64ACD7AA97D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader", "AutomaticStockTrader\AutomaticStockTrader.csproj", "{C15A3368-F71E-4A65-9762-64ACD7AA97D4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.CognitiveServices.Search.BingNewsSearch", "Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj", "{751124EE-0319-4E81-AD81-504CE90B628C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Tests", "Stonks2.Tests\AutomaticStockTrader.Tests.csproj", "{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Tests", "AutomaticStockTrader.Tests\AutomaticStockTrader.Tests.csproj", "{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{90C1458D-7163-45F9-89C0-143DE5F6908F}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Repository", "Stonks2.Repository\AutomaticStockTrader.Repository.csproj", "{DE63B726-54FA-4819-9B66-4AF46B24B0FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Repository", "AutomaticStockTrader.Repository\AutomaticStockTrader.Repository.csproj", "{DE63B726-54FA-4819-9B66-4AF46B24B0FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutomaticStockTrader.Core", "AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj", "{22FB3703-5CAA-44F3-8E96-49A4CE3EB66D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Core", "AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj", "{22FB3703-5CAA-44F3-8E96-49A4CE3EB66D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutomaticStockTrader.Domain", "AutomaticStockTrader.Domain\AutomaticStockTrader.Domain.csproj", "{03E2D734-7DE3-4F34-9F9C-B75265C21FD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Domain", "AutomaticStockTrader.Domain\AutomaticStockTrader.Domain.csproj", "{03E2D734-7DE3-4F34-9F9C-B75265C21FD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +29,6 @@ Global
 		{C15A3368-F71E-4A65-9762-64ACD7AA97D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C15A3368-F71E-4A65-9762-64ACD7AA97D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C15A3368-F71E-4A65-9762-64ACD7AA97D4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{751124EE-0319-4E81-AD81-504CE90B628C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{751124EE-0319-4E81-AD81-504CE90B628C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{751124EE-0319-4E81-AD81-504CE90B628C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{751124EE-0319-4E81-AD81-504CE90B628C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B5A55CF-DBEA-4EEC-9CD4-2E5C45824AFA}.Release|Any CPU.ActiveCfg = Release|Any CPU

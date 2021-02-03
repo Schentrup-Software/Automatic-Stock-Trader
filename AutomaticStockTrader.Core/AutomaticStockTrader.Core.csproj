@@ -13,8 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutomaticStockTrader.Domain\AutomaticStockTrader.Domain.csproj" />
-    <ProjectReference Include="..\Search.BingNewsSearch\Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj" />
-    <ProjectReference Include="..\Stonks2.Repository\AutomaticStockTrader.Repository.csproj" />
+    <ProjectReference Include="..\AutomaticStockTrader.Repository\AutomaticStockTrader.Repository.csproj" />
   </ItemGroup>
 
 </Project>
