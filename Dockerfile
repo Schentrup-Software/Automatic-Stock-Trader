@@ -5,17 +5,19 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 WORKDIR /src
-COPY ["Stonks2/Stonks2.csproj", "Stonks2/"]
-COPY ["Search.BingNewsSearch/Microsoft.Azure.CognitiveServices.Search.BingNewsSearch.csproj", "Search.BingNewsSearch/"]
-RUN dotnet restore "Stonks2/Stonks2.csproj"
+COPY ["AutomaticStockTrader/AutomaticStockTrader.csproj", "AutomaticStockTrader/"]
+COPY ["AutomaticStockTrader.Repository/AutomaticStockTrader.Repository.csproj", "AutomaticStockTrader.Repository/"]
+COPY ["AutomaticStockTrader.Domain/AutomaticStockTrader.Domain.csproj", "AutomaticStockTrader.Domain/"]
+COPY ["AutomaticStockTrader.Core/AutomaticStockTrader.Core.csproj", "AutomaticStockTrader.Core/"]
+RUN dotnet restore "AutomaticStockTrader/AutomaticStockTrader.csproj"
 COPY . .
-WORKDIR "/src/Stonks2"
-RUN dotnet build "Stonks2.csproj" -c Release -o /app/build
+WORKDIR "/src/AutomaticStockTrader"
+RUN dotnet build "AutomaticStockTrader.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Stonks2.csproj" -c Release -o /app/publish
+RUN dotnet publish "AutomaticStockTrader.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Stonks2.dll"]
+ENTRYPOINT ["dotnet", "AutomaticStockTrader.dll"]
