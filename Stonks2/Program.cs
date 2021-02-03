@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Configuration;
+using AutomaticStockTrader.Repository.Configuration;
+using AutomaticStockTrader.Core;
+using AutomaticStockTrader.Repository.Models;
+using AutomaticStockTrader;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using AutomaticStockTrader.Core.Strategies;
 using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
-using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
 using AutomaticStockTrader.Core.Strategies.MLStrategy;
-using AutomaticStockTrader.Repository.Configuration;
+using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
+using Microsoft.Extensions.Options;
 using AutomaticStockTrader.Repository;
-using AutomaticStockTrader.Repository.Models;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 class Program
 {
@@ -23,118 +27,80 @@ class Program
     {
         Console.WriteLine("App starting");
 
-        var args = new Dictionary<string, string>();
+        var args = new List<string>();
 
         if (strategyNames?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("Trading_Strategies_Raw", strategyNames.Aggregate((x, y) => $"{x}, {y}"));
+            args.Add("--Trading_Strategies_Raw");
+            args.Add(strategyNames.Aggregate((x, y) => $"{x}, {y}"));
         }
 
         if (tradingFreqencies?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("Trading_Freqencies_Raw", strategyNames.Aggregate((x, y) => $"{x}, {y}"));
+            args.Add("--Trading_Freqencies_Raw");
+            args.Add(tradingFreqencies.Aggregate((x, y) => $"{x}, {y}"));
         }
 
         if (stockSymbols?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("Stock_List_Raw", stockSymbols.Aggregate((x, y) => $"{x}, {y}"));
+            args.Add("--Stock_List_Raw");
+            args.Add(stockSymbols.Aggregate((x, y) => $"{x}, {y}"));
         }
 
-        //Config
-        var config = new ConfigurationBuilder()
-            .AddJsonFile($"appsettings.json", true, true)
-            .AddEnvironmentVariables()
-            .AddInMemoryCollection(args)
-            .Build();
+        await CreateHostBuilder(args).RunConsoleAsync();
 
-        var alpacaConfig = config.Get<AlpacaConfig>();
-        var stockConfig = config.Get<StockConfig>();
-        var strategyConfig = config.Get<StrategyConfig>();
-        var mlConfig = config.Get<MLConfig>();
-        var dbConfig = config.Get<DatabaseConfig>();
-        
-        using var alpacaClient = new AlpacaClient(alpacaConfig);
-
-        var context = new StockContext(dbConfig);
-        if (!string.IsNullOrWhiteSpace(dbConfig.Db_Connection_String))
-        {
-            await context.Database.MigrateAsync();
-        }
-        else
-        {
-            await context.Database.EnsureCreatedAsync();
-        }
-
-        using var repo = new TrackingRepository(context);
-
-        await AutoTradeStocks(alpacaClient, repo, stockConfig, mlConfig, strategyConfig);
-
-        while (true)
-        {
-            await Task.Delay(600000);
-        }    
+        return 0;
     }
 
-    private static async Task AutoTradeStocks(IAlpacaClient alpacaClient, ITrackingRepository repo, StockConfig stockConfig, MLConfig mlConfig, StrategyConfig strategyConfig)
-    {
-        if ((stockConfig.Stock_List?.Count ?? 0) == 0)
-        {
-            throw new ArgumentException("You must pass an least one valid stock symbol", nameof(stockConfig));
-        }
-
-        var strategies = strategyConfig.Trading_Strategies
-            .Select<string, Strategy>((x, i) => x switch
+    private static IHostBuilder CreateHostBuilder(List<string> args) =>
+        Host.CreateDefaultBuilder(args.ToArray())
+            .ConfigureServices((hostContext, services) =>
             {
-                nameof(MeanReversionStrategy) => new MeanReversionStrategy(
-                    alpacaClient: alpacaClient,
-                    trackingRepository: repo,
-                    tradingFrequency: strategyConfig.Trading_Freqencies.ElementAtOrDefault(i),
-                    percentageOfEquityToAllocate: strategyConfig.Percentage_Of_Equity_Per_Position),
-                nameof(MLStrategy) => new MLStrategy(
-                    alpacaClient: alpacaClient,
-                    trackingRepository: repo,
-                    tradingFrequency: strategyConfig.Trading_Freqencies.ElementAtOrDefault(i),
-                    percentageOfEquityToAllocate: strategyConfig.Percentage_Of_Equity_Per_Position,
-                    config: mlConfig),
-                nameof(MicrotrendStrategy) => new MicrotrendStrategy(
-                    alpacaClient: alpacaClient,
-                    trackingRepository: repo,
-                    tradingFrequency: strategyConfig.Trading_Freqencies.ElementAtOrDefault(i),
-                    percentageOfEquityToAllocate: strategyConfig.Percentage_Of_Equity_Per_Position),
-                /*nameof(NewsStrategy) => new NewsStrategy(
-                    client: alpacaClient,
-                    trackingRepository: repo,
-                    percentageOfEquityToAllocate: strategyConfig.Percentage_Of_Equity_Per_Position,
-                    config: NewsSearchConfig),*/
-                _ => throw new ArgumentException($"Strategy with name of '{x}' is not valid")
+                var Config = hostContext.Configuration;
+
+                services
+                    .AddOptions()
+                    .Configure<AlpacaConfig>(Config)
+                    .Configure<StockConfig>(Config)
+                    .Configure<StrategyConfig>(Config)
+                    .Configure<MLConfig>(Config)
+                    .Configure<DatabaseConfig>(Config);
+
+                services
+                    .AddHostedService<StartAutoTrade>()
+                    .AddDbContext<StockContext>()
+                    .AddSingleton<IAlpacaClient, AlpacaClient>()
+                    .AddTransient<ITrackingRepository, TrackingRepository>()
+                    .AddTransient(services => {
+                        var config = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
+
+                        return config.Trading_Strategies
+                            .Select((x, i) => x switch
+                            {
+                                nameof(MeanReversionStrategy) => new StrategyHandler(
+                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                    services.GetRequiredService<IAlpacaClient>(),
+                                    services.GetRequiredService<ITrackingRepository>(),
+                                    new MeanReversionStrategy(),
+                                    config.Trading_Freqencies.ElementAtOrDefault(i),
+                                    config.Percentage_Of_Equity_Per_Position),
+                                nameof(MLStrategy) => new StrategyHandler(
+                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                    services.GetRequiredService<IAlpacaClient>(),
+                                    services.GetRequiredService<ITrackingRepository>(),
+                                    new MLStrategy(services.GetRequiredService<IOptions<MLConfig>>().Value),
+                                    config.Trading_Freqencies.ElementAtOrDefault(i),
+                                    config.Percentage_Of_Equity_Per_Position),
+                                nameof(MicrotrendStrategy) => new StrategyHandler(
+                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                    services.GetRequiredService<IAlpacaClient>(),
+                                    services.GetRequiredService<ITrackingRepository>(),
+                                    new MicrotrendStrategy(),
+                                    config.Trading_Freqencies.ElementAtOrDefault(i),
+                                    config.Percentage_Of_Equity_Per_Position),
+                                _ => throw new ArgumentException($"Strategy with name of '{x}' is not valid")
+                            });
+                        }
+                    ); 
             });
-
-        if (!strategies.Any())
-        {
-            throw new ArgumentException($"No strategies given. You must provide at least on strategy.", nameof(stockConfig));
-        }
-
-        if (!await alpacaClient.ConnectStreamApi())
-        {
-            throw new UnauthorizedAccessException("Failed to connect to streaming API. Authorization failed.");
-        }
-
-        alpacaClient.SubscribeToTradeUpdates(async order => await repo.CompleteOrder(order.StockSymbol, order.MarketPrice, order.SharesBought));
-
-        foreach (var strategy in strategies)
-        {
-            foreach (var stockSymbol in stockConfig.Stock_List)
-            {
-                var stockData = await alpacaClient.GetStockData(stockSymbol);
-
-                if ((stockData?.Count ?? 0) == 0)
-                {
-                    throw new ArgumentException($"You stock symbol {stockSymbol} is not valid.", nameof(stockConfig));
-                }
-
-                strategy.HistoricalData = stockData;
-                alpacaClient.SubscribeMinuteAgg(stockSymbol, async y => await strategy.HandleMinuteAgg(y));
-            }
-        }
-    }
 }

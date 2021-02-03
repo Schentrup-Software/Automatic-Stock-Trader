@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Alpaca.Markets;
 using AutomaticStockTrader.Core.Configuration;
 using AutomaticStockTrader.Domain;
+using Microsoft.Extensions.Options;
 
 namespace AutomaticStockTrader.Core.Alpaca
 {
@@ -18,11 +19,11 @@ namespace AutomaticStockTrader.Core.Alpaca
         
         private bool disposedValue;
 
-        public AlpacaClient(AlpacaConfig config)
+        public AlpacaClient(IOptions<AlpacaConfig> config)
         {
-            _config = config;
-            var env = config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
-            var key = config.Alpaca_Use_Live_Api ? new SecretKey(_config.Alpaca_Live_App_Id, _config.Alpaca_Live_Secret_Key) : new SecretKey(_config.Alpaca_Paper_App_Id, _config.Alpaca_Paper_Secret_Key);
+            _config = config.Value;
+            var env = _config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
+            var key = _config.Alpaca_Use_Live_Api ? new SecretKey(_config.Alpaca_Live_App_Id, _config.Alpaca_Live_Secret_Key) : new SecretKey(_config.Alpaca_Paper_App_Id, _config.Alpaca_Paper_Secret_Key);
             
             _alpacaTradingClient = env.GetAlpacaTradingClient(key);
             _alpacaTradingStreamingClient = env.GetAlpacaStreamingClient(key);

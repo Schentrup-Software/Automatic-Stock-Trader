@@ -1,25 +1,25 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Configuration;
 using AutomaticStockTrader.Domain;
 using AutomaticStockTrader.Repository;
+using Microsoft.Extensions.Options;
 
 namespace AutomaticStockTrader.Core.Strategies.MLStrategy
 {
-    public class MLStrategy : Strategy
+    public class MLStrategy : IStrategy
     {
         private readonly MLConfig _config;
 
-        public MLStrategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency tradingFrequency, decimal percentageOfEquityToAllocate, MLConfig config) 
-            : base(alpacaClient, trackingRepository, tradingFrequency, percentageOfEquityToAllocate)
+        public MLStrategy(MLConfig config) 
         {
             _config = config;
         }
 
-        public override Task<bool?> ShouldBuyStock(StockInput newData)
+        public Task<bool?> ShouldBuyStock(IList<StockInput> HistoricalData)
         {
-            HistoricalData.Add(newData);
             var modelBuilder = new ModelBuilder(_config);
             var model = modelBuilder.BuildModel(HistoricalData.Select(x => new ModelInput
             {

@@ -18,21 +18,22 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestInitialize]
         public void SetUp()
         {
-            _strategy = new MicrotrendStrategy(new Mock<IAlpacaClient>().Object, new Mock<ITrackingRepository>().Object, TradingFrequency.Minute, 0.1m);
+            _strategy = new MicrotrendStrategy();
         }
 
         [TestMethod]
         public async Task ShouldBuyStock_TrendingUp_TakesPosition()
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = new List<StockInput>()
+            var historicalData = new List<StockInput>()
             {
                 new StockInput {ClosingPrice = 10, Time = now.AddMinutes(-1)},
                 new StockInput {ClosingPrice = 11, Time = now.AddMinutes(-3)},
                 new StockInput {ClosingPrice = 9, Time = now.AddMinutes(-2)},
+                new StockInput { ClosingPrice = 11, Time = now },
             };
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 11, Time = now });
+            var result = await _strategy.ShouldBuyStock(historicalData);
 
             Assert.IsTrue(result.Value);
         }
@@ -41,14 +42,15 @@ namespace AutomaticStockTrader.Tests.Stategies
         public async Task ShouldBuyStock_NoTrends_HoldPosition()
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = new List<StockInput>()
+            var historicalData = new List<StockInput>()
             {
                 new StockInput {ClosingPrice = 10, Time = now.AddMinutes(-1)},
                 new StockInput {ClosingPrice = 11, Time = now.AddMinutes(-3)},
                 new StockInput {ClosingPrice = 9, Time = now.AddMinutes(-2)},
+                new StockInput { ClosingPrice = 10, Time = now },
             };
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 10, Time = now });
+            var result = await _strategy.ShouldBuyStock(historicalData);
 
             Assert.IsNull(result);
         }
@@ -57,12 +59,13 @@ namespace AutomaticStockTrader.Tests.Stategies
         public async Task ShouldBuyStock_NotEnoughData_HoldPosition()
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = new List<StockInput>()
+            var historicalData = new List<StockInput>()
             {
                 new StockInput {ClosingPrice = 1, Time = now.AddMinutes(-1)},
+                new StockInput { ClosingPrice = 10, Time = now },
             };
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 10, Time = now });
+            var result = await _strategy.ShouldBuyStock(historicalData);
 
             Assert.IsNull(result);
         }
@@ -74,14 +77,15 @@ namespace AutomaticStockTrader.Tests.Stategies
         public async Task ShouldBuyStock_TrendDown_SellPosition(double value1, double value2, double value3, double value4)
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = new List<StockInput>()
+            var historicalData = new List<StockInput>()
             {
                 new StockInput {ClosingPrice = (decimal)value3, Time = now.AddMinutes(-1)},
                 new StockInput {ClosingPrice = (decimal)value1, Time = now.AddMinutes(-3)},
                 new StockInput {ClosingPrice = (decimal)value2, Time = now.AddMinutes(-2)},
+                new StockInput { ClosingPrice = (decimal)value4, Time = now },
             };
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = (decimal)value4, Time = now });
+            var result = await _strategy.ShouldBuyStock(historicalData);
 
             Assert.IsFalse(result.Value);
         }

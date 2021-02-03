@@ -20,7 +20,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestInitialize]
         public void SetUp()
         {
-            _strategy = new MeanReversionStrategy(new Mock<IAlpacaClient>().Object, new Mock<ITrackingRepository>().Object, TradingFrequency.Minute, 0.1m);
+            _strategy = new MeanReversionStrategy();
             _histoicData = Enumerable.Range(1, 20).Select(x => new StockInput
             {
                 ClosingPrice = x % 3,
@@ -32,9 +32,9 @@ namespace AutomaticStockTrader.Tests.Stategies
         public async Task ShouldBuyStock_BelowAverage_TakesPosition()
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = _histoicData;
+            _histoicData.Add(new StockInput { ClosingPrice = 0.5m, Time = now });
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 0.5m, Time = now });
+            var result = await _strategy.ShouldBuyStock(_histoicData);
 
             Assert.IsTrue(result.Value);
         }
@@ -43,14 +43,15 @@ namespace AutomaticStockTrader.Tests.Stategies
         public async Task ShouldBuyStock_NotEnoughData_HoldPosition()
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = new List<StockInput>()
+            _histoicData = new List<StockInput>()
             {
                 new StockInput {ClosingPrice = 10, Time = now.AddMinutes(-1)},
                 new StockInput {ClosingPrice = 11, Time = now.AddMinutes(-3)},
                 new StockInput {ClosingPrice = 9, Time = now.AddMinutes(-2)},
+                new StockInput { ClosingPrice = 10, Time = now },
             };
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 10, Time = now });
+            var result = await _strategy.ShouldBuyStock(_histoicData);
 
             Assert.IsNull(result);
         }
@@ -59,9 +60,9 @@ namespace AutomaticStockTrader.Tests.Stategies
         public async Task ShouldBuyStock_AboveAverage_SellPosition()
         {
             var now = DateTime.Now;
-            _strategy.HistoricalData = _histoicData;
+            _histoicData.Add(new StockInput { ClosingPrice = 4, Time = now });
 
-            var result = await _strategy.ShouldBuyStock(new StockInput { ClosingPrice = 4, Time = now });
+            var result = await _strategy.ShouldBuyStock(_histoicData);
 
             Assert.IsFalse(result.Value);
         }

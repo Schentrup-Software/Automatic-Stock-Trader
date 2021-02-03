@@ -10,6 +10,8 @@ namespace AutomaticStockTrader.Repository.Models
         public DbSet<Order> Orders { get; set; }
         public DbSet<StratagysStock> StratagysStocks { get; set; }
 
+        public bool IsUsingDefault => string.IsNullOrWhiteSpace(_config.Db_Connection_String);
+
         public StockContext(DatabaseConfig config = null)
         {
             _config = config ?? new DatabaseConfig();
@@ -17,13 +19,13 @@ namespace AutomaticStockTrader.Repository.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!string.IsNullOrWhiteSpace(_config.Db_Connection_String))
+            if (IsUsingDefault)
             {
-                optionsBuilder.UseSqlServer(_config.Db_Connection_String);
+                optionsBuilder.UseSqlite(DatabaseConfig.DEFAULT_CONNECTION_STRING);
             }
             else
             {
-                optionsBuilder.UseSqlite(DatabaseConfig.DEFAULT_CONNECTION_STRING);
+                optionsBuilder.UseSqlServer(_config.Db_Connection_String);
             }
         }
 

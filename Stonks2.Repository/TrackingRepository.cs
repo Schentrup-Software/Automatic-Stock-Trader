@@ -11,7 +11,7 @@ namespace AutomaticStockTrader.Repository
 
         public TrackingRepository(StockContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task AddPendingOrder(Domain.StrategysStock strategysStock, Domain.Order order)

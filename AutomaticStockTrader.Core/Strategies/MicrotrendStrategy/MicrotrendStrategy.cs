@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Domain;
@@ -6,17 +7,11 @@ using AutomaticStockTrader.Repository;
 
 namespace AutomaticStockTrader.Core.Strategies.MicrotrendStrategy
 {
-    public class MicrotrendStrategy : Strategy
+    public class MicrotrendStrategy : IStrategy
     {
-        public MicrotrendStrategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency tradingFrequency, decimal percentageOfEquityToAllocate) 
-            : base(alpacaClient, trackingRepository, tradingFrequency, percentageOfEquityToAllocate) { }
-
-        public override Task<bool?> ShouldBuyStock(StockInput newData)
+        public Task<bool?> ShouldBuyStock(IList<StockInput> HistoricalData)
         {
-            HistoricalData.Add(newData);
-            HistoricalData = HistoricalData.OrderByDescending(x => x.Time).Take(3).ToList();
-
-            var last3Values = HistoricalData.Select(x => x.ClosingPrice).ToList();
+            var last3Values = HistoricalData.OrderByDescending(x => x.Time).Take(3).Select(x => x.ClosingPrice).ToList();
 
             //Default to hold
             var result = (bool?) null;

@@ -6,17 +6,18 @@ using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Configuration;
 using AutomaticStockTrader.Domain;
 using AutomaticStockTrader.Repository;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 
 namespace AutomaticStockTrader.Core.Strategies.NewsStrategy
 {
-    public class NewsStrategy : Strategy
+    public class NewsStrategy : IStrategy
     {
         private readonly NewsSearchConfig _config;
 
-        public NewsStrategy(IAlpacaClient client, ITrackingRepository trackingRepository, decimal percentageOfEquityToAllocate, NewsSearchConfig config) 
-            : base(client, trackingRepository, TradingFrequency.Day, percentageOfEquityToAllocate)
+        public NewsStrategy(IOptions<NewsSearchConfig> config)
         {
-            _config = config;
+            _config = config.Value;
         }
 
         public async Task DoStuff()
@@ -36,14 +37,14 @@ namespace AutomaticStockTrader.Core.Strategies.NewsStrategy
             }
         }
 
-        public override async Task<bool?> ShouldBuyStock(StockInput newData)
+        public async Task<bool?> ShouldBuyStock(IList<StockInput> HistoricalData)
         {
             var client = new NewsSearchClient(new ApiKeyServiceClientCredentials(_config.News_Search_Api_Key))
             {
                 Endpoint = _config.News_Search_Endpoint
             };
 
-            var result = await client.News.SearchAsync(query: newData.StockSymbol, market: "en-US", freshness: "Day", count: 100);
+            var result = await client.News.SearchAsync(query: HistoricalData.First().StockSymbol, market: "en-US", freshness: "Day", count: 100);
             return false;
         }
     }

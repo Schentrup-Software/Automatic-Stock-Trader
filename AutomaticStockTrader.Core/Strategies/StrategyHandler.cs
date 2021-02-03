@@ -4,32 +4,44 @@ using System.Threading.Tasks;
 using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Domain;
 using AutomaticStockTrader.Repository;
+using Microsoft.Extensions.Logging;
 
 namespace AutomaticStockTrader.Core.Strategies
 {
-    public abstract class Strategy : IDisposable
+    public class StrategyHandler : IDisposable
     {
+        private readonly ILogger<StrategyHandler> _logger;
         private readonly IAlpacaClient _alpacaClient;
         private readonly ITrackingRepository _trackingRepository;
+        private readonly IStrategy _stategy;
         private readonly TradingFrequency _frequency;
+
         private readonly decimal _percentageOfEquityToAllocate;
         private bool disposedValue;
 
-        public IList<StockInput> HistoricalData { get; set; }
-
-        public Strategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency frequency, decimal percentageOfEquityToAllocate)
+        public readonly List<StockInput> HistoricalData;
+        
+        public StrategyHandler(
+            ILogger<StrategyHandler> logger,
+            IAlpacaClient alpacaClient, 
+            ITrackingRepository trackingRepository,
+            IStrategy strategy,
+            TradingFrequency frequency, 
+            decimal percentageOfEquityToAllocate)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _alpacaClient = alpacaClient ?? throw new ArgumentException(nameof(alpacaClient));
             _trackingRepository = trackingRepository ?? throw new ArgumentException(nameof(trackingRepository));
+            _stategy = strategy ?? throw new ArgumentException(nameof(strategy));
             _frequency = frequency;
             _percentageOfEquityToAllocate = percentageOfEquityToAllocate;
+            HistoricalData = new List<StockInput>();
         }
-
-        public abstract Task<bool?> ShouldBuyStock(StockInput newData);
 
         public virtual async Task HandleMinuteAgg(StockInput newValue)
         {
-            var result = await ShouldBuyStock(newValue);
+            HistoricalData.Add(newValue);
+            var result = await _stategy.ShouldBuyStock(HistoricalData);
 
             var stockStrategy = new StrategysStock
             {
@@ -41,16 +53,16 @@ namespace AutomaticStockTrader.Core.Strategies
             if (result.HasValue && result.Value)
             {
                 await HandleBuy(newValue.ClosingPrice, stockStrategy);
-                Console.WriteLine($"{GetType().Name} is having a position in {newValue.StockSymbol}");
+                _logger.LogInformation($"{GetType().Name} is having a position in {newValue.StockSymbol}");
             }
             else if (result.HasValue && !result.Value)
             {
                 await HandleSell(newValue.ClosingPrice, stockStrategy);
-                Console.WriteLine($"{GetType().Name} is not having a position in {newValue.StockSymbol}.");
+                _logger.LogInformation($"{GetType().Name} is not having a position in {newValue.StockSymbol}.");
             }
             else
             {
-                Console.WriteLine($"{GetType().Name} is not buying or selling {newValue.StockSymbol}");
+                _logger.LogInformation($"{GetType().Name} is not buying or selling {newValue.StockSymbol}");
             }
         }
 

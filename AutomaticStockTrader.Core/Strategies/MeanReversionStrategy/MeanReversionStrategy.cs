@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutomaticStockTrader.Core.Alpaca;
@@ -7,26 +8,21 @@ using AutomaticStockTrader.Repository;
 
 namespace AutomaticStockTrader.Core.Strategies.MeanReversionStrategy
 {
-    public class MeanReversionStrategy : Strategy
+    public class MeanReversionStrategy : IStrategy
     {
-        public MeanReversionStrategy(IAlpacaClient alpacaClient, ITrackingRepository trackingRepository, TradingFrequency tradingFrequency, decimal percentageOfEquityToAllocate) 
-            : base(alpacaClient, trackingRepository, tradingFrequency, percentageOfEquityToAllocate) { }
-
-        public override Task<bool?> ShouldBuyStock(StockInput newData)
+        public Task<bool?> ShouldBuyStock(IList<StockInput> HistoricalData)
         {
-            HistoricalData.Add(newData);
             if (HistoricalData.Count > 20)
             {
                 HistoricalData = HistoricalData.OrderByDescending(x => x.Time).Take(20).ToList();
 
                 var avg = HistoricalData.Select(x => x.ClosingPrice).Average();
-                var diff = avg - newData.ClosingPrice;
+                var diff = avg - HistoricalData.OrderByDescending(x => x.Time).First().ClosingPrice;
 
                 return Task.FromResult<bool?>(diff >= 0);
             }
             else
             {
-                Console.WriteLine($"Waiting on more data for {GetType().Name}.");
                 return Task.FromResult<bool?>(null);
             }
         }
