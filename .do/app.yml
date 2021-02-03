@@ -13,19 +13,11 @@ workers:
   - key: STOCK_LIST_RAW
     scope: RUN_TIME
     value: "GE, XPEV, F, PLTR, BAC, NOK, ACB, PFE, FSR, VALE, BABA, WFC, XOM, T, PBR, ABEV, M, NCLH, PCG, MRO, AMC, DIS, DAL, FCX, BA, ET, BSX, C, SNAP, OXY, VRT, AUY, VIPS, SWN, UBER, MGM, GM, VER, JWN, NLY, LU, KMI, AMWL, COTY, TME"
-  - key: ALPACA_PAPER_SECRET_KEY
-    scope: RUN_TIME
+  - key: ALPACA_APP_ID
+    scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:MMy49V6XV3K3ve8O3y67birWeNpZBO8J:9Fg0t5H37JMzUW/tgVBb2W28oExMazhYEgN6qb20deL9AXw8BcUqCeSITzpo+lY5LPkKUMGJTAc=]
-  - key: ALPACA_PAPER_APP_ID
-    scope: RUN_TIME
+    value: EV[1:3dBkGDP1cD3oKeHc8ENIO6bW/p+Pkfyd:uxLNmzdNRxUDgJazu7bHklQlQytKKEDlVq3OXbR2nw3bSVIL]
+  - key: ALPACA_SECRET_KEY
+    scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:2/Lv4gZSmquu/dRyJxpPXiWoCy7pCaCG:/WbLk8gJdF6/BUMiiS39ze2J9M/gAn4MaUk7xjoCaewgYioe]
-  - key: ALPACA_LIVE_APP_ID
-    scope: RUN_TIME
-    type: SECRET
-    value: EV[1:tRzD7CN5Y6TqzHCmhGqgwIDaLE/GOSd4:VZjdqpj+joqGjrlaJUYcBM74FEFWarMKfFumLZWag9DBBRgN]
-  - key: ALPACA_LIVE_SECRET_KEY
-    scope: RUN_TIME
-    type: SECRET
-    value: EV[1:Gfxb0ykRRAyOj1A6i5EJIQ2dxBfwZC77:Pw1n1FxhK3RkFf+bmxA/oqW2iOoVJPrau7sHWrzQNUuLP+vGbVBM0jeYQr9pqIH3wfXoclZ41ts=]
+    value: EV[1:Mh5AKO9jone/+d7U70I5R+Jzld6C3ibP:gWyRTWLFRF21RE0JkFBztqOk/aYOdODHtvkRR76BNkq7cduH5Msj0DacG5BS78oU4x1EgRp7C3M=]
