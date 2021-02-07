@@ -13,12 +13,13 @@ namespace AutomaticStockTrader.Core.Strategies
         private readonly ILogger<StrategyHandler> _logger;
         private readonly IAlpacaClient _alpacaClient;
         private readonly ITrackingRepository _trackingRepository;
-        private readonly IStrategy _stategy;
-        private readonly TradingFrequency _frequency;
+        private readonly IStrategy _strategy;
+        private readonly TradingFrequency _frequency;     
 
         private readonly decimal _percentageOfEquityToAllocate;
         private bool disposedValue;
 
+        public readonly string StockSymbol;
         public readonly List<StockInput> HistoricalData;
         
         public StrategyHandler(
@@ -27,46 +28,54 @@ namespace AutomaticStockTrader.Core.Strategies
             ITrackingRepository trackingRepository,
             IStrategy strategy,
             TradingFrequency frequency, 
-            decimal percentageOfEquityToAllocate)
+            decimal percentageOfEquityToAllocate,
+            string stockSymbol)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _alpacaClient = alpacaClient ?? throw new ArgumentException(nameof(alpacaClient));
             _trackingRepository = trackingRepository ?? throw new ArgumentException(nameof(trackingRepository));
-            _stategy = strategy ?? throw new ArgumentException(nameof(strategy));
+            _strategy = strategy ?? throw new ArgumentException(nameof(strategy));
             _frequency = frequency;
             _percentageOfEquityToAllocate = percentageOfEquityToAllocate;
+            StockSymbol = stockSymbol;
+
             HistoricalData = new List<StockInput>();
         }
 
         public virtual async Task HandleMinuteAgg(StockInput newValue)
         {
+            if(!string.Equals(newValue.StockSymbol, StockSymbol, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new InvalidOperationException($"Cannot handle {newValue.StockSymbol} stock with {StockSymbol} handler.");
+            }
+
             HistoricalData.Add(newValue);
-            var result = await _stategy.ShouldBuyStock(HistoricalData);
+            var result = await _strategy.ShouldBuyStock(HistoricalData);
 
             var stockStrategy = new StrategysStock
             {
-                StockSymbol = newValue.StockSymbol,
-                Strategy = GetType().Name,
+                StockSymbol = StockSymbol,
+                Strategy = _strategy.GetType().Name,
                 TradingFrequency = _frequency
             };
 
             if (result.HasValue && result.Value)
             {
                 await HandleBuy(newValue.ClosingPrice, stockStrategy);
-                _logger.LogInformation($"{GetType().Name} is having a position in {newValue.StockSymbol}");
+                _logger.LogInformation($"{_strategy.GetType().Name} is having a position in {StockSymbol}");
             }
             else if (result.HasValue && !result.Value)
             {
                 await HandleSell(newValue.ClosingPrice, stockStrategy);
-                _logger.LogInformation($"{GetType().Name} is not having a position in {newValue.StockSymbol}.");
+                _logger.LogInformation($"{_strategy.GetType().Name} is not having a position in {StockSymbol}.");
             }
             else
             {
-                _logger.LogInformation($"{GetType().Name} is not buying or selling {newValue.StockSymbol}");
+                _logger.LogInformation($"{_strategy.GetType().Name} is not buying or selling {StockSymbol}");
             }
         }
 
-        private async Task HandleSell(decimal marketPrice, StrategysStock stockStrategy)
+        internal async Task HandleSell(decimal marketPrice, StrategysStock stockStrategy)
         {
             var currentPosition = await _trackingRepository.GetOrCreateEmptyPosition(stockStrategy);
 
@@ -84,7 +93,7 @@ namespace AutomaticStockTrader.Core.Strategies
             }
         }
 
-        private async Task HandleBuy(decimal marketPrice, StrategysStock stockStrategy)
+        internal async Task HandleBuy(decimal marketPrice, StrategysStock stockStrategy)
         {
             var equityTask = _alpacaClient.GetTotalEquity();
             var currentPosition = await _trackingRepository.GetOrCreateEmptyPosition(stockStrategy);
@@ -108,12 +117,13 @@ namespace AutomaticStockTrader.Core.Strategies
         private long CalculateNumberOfSharesNeeded(long numberOfSharesCurrentlyOwned, decimal marketPrice, decimal equity)
         {
             var targetEquityAmount = equity * _percentageOfEquityToAllocate;
-
             var missingEquity = targetEquityAmount - (numberOfSharesCurrentlyOwned * marketPrice);
+            var percentageMissging = missingEquity / targetEquityAmount;
 
-            var numberOfSharesNeeded = (long)Math.Floor(missingEquity / marketPrice);
+            var numberOfSharesNeeded = (long)Math.Floor(missingEquity / marketPrice); 
 
-            return numberOfSharesNeeded > 0 ? numberOfSharesNeeded : 0;
+            //Only buy if we are missing at least 10% equity. This helps prevent thrashing.
+            return percentageMissging >= 0.1m ? numberOfSharesNeeded : 0;
         }
 
         protected virtual void Dispose(bool disposing)

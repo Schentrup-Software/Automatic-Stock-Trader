@@ -68,38 +68,52 @@ class Program
 
                 services
                     .AddHostedService<StartAutoTrade>()
-                    .AddDbContext<StockContext>()
+                    .AddDbContext<StockContext>(ServiceLifetime.Transient)
                     .AddSingleton<IAlpacaClient, AlpacaClient>()
                     .AddTransient<ITrackingRepository, TrackingRepository>()
                     .AddTransient(services => {
                         var config = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
+                        var stockConfig = services.GetRequiredService<IOptions<StockConfig>>().Value;
 
                         return config.Trading_Strategies
                             .Select((x, i) => x switch
                             {
-                                nameof(MeanReversionStrategy) => new StrategyHandler(
-                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
-                                    services.GetRequiredService<IAlpacaClient>(),
-                                    services.GetRequiredService<ITrackingRepository>(),
-                                    new MeanReversionStrategy(),
-                                    config.Trading_Freqencies.ElementAtOrDefault(i),
-                                    config.Percentage_Of_Equity_Per_Position),
-                                nameof(MLStrategy) => new StrategyHandler(
-                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
-                                    services.GetRequiredService<IAlpacaClient>(),
-                                    services.GetRequiredService<ITrackingRepository>(),
-                                    new MLStrategy(services.GetRequiredService<IOptions<MLConfig>>().Value),
-                                    config.Trading_Freqencies.ElementAtOrDefault(i),
-                                    config.Percentage_Of_Equity_Per_Position),
-                                nameof(MicrotrendStrategy) => new StrategyHandler(
-                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
-                                    services.GetRequiredService<IAlpacaClient>(),
-                                    services.GetRequiredService<ITrackingRepository>(),
-                                    new MicrotrendStrategy(),
-                                    config.Trading_Freqencies.ElementAtOrDefault(i),
-                                    config.Percentage_Of_Equity_Per_Position),
+                                nameof(MeanReversionStrategy) => 
+                                    stockConfig.Stock_List.Select(stockSymbol => 
+                                        new StrategyHandler(
+                                            services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                            services.GetRequiredService<IAlpacaClient>(),
+                                            services.GetRequiredService<ITrackingRepository>(),
+                                            new MeanReversionStrategy(),
+                                            config.Trading_Freqencies.ElementAtOrDefault(i),
+                                            config.Percentage_Of_Equity_Per_Position,
+                                            stockSymbol)
+                                        ),
+                                nameof(MLStrategy) =>
+                                    stockConfig.Stock_List.Select(stockSymbol => 
+                                        new StrategyHandler(
+                                            services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                            services.GetRequiredService<IAlpacaClient>(),
+                                            services.GetRequiredService<ITrackingRepository>(),
+                                            new MLStrategy(services.GetRequiredService<IOptions<MLConfig>>().Value),
+                                            config.Trading_Freqencies.ElementAtOrDefault(i),
+                                            config.Percentage_Of_Equity_Per_Position,
+                                            stockSymbol)
+                                        ),
+                                nameof(MicrotrendStrategy) =>
+                                    stockConfig.Stock_List.Select(stockSymbol =>
+                                        new StrategyHandler(
+                                            services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                            services.GetRequiredService<IAlpacaClient>(),
+                                            services.GetRequiredService<ITrackingRepository>(),
+                                            new MicrotrendStrategy(),
+                                            config.Trading_Freqencies.ElementAtOrDefault(i),
+                                            config.Percentage_Of_Equity_Per_Position,
+                                            stockSymbol)
+                                        ),
                                 _ => throw new ArgumentException($"Strategy with name of '{x}' is not valid")
-                            });
+                            })
+                            .SelectMany(x => x);
                         }
                     ); 
             });
