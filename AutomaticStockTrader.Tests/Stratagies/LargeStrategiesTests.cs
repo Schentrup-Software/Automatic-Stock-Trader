@@ -16,6 +16,7 @@ using AutomaticStockTrader.Repository.Models;
 using Order = AutomaticStockTrader.Domain.Order;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Alpaca.Markets;
 
 namespace AutomaticStockTrader.Tests.Stategies
 {
@@ -37,12 +38,24 @@ namespace AutomaticStockTrader.Tests.Stategies
                 .AddEnvironmentVariables()
                 .Build();
 
-            _alpacaClient = new AlpacaClient(Options.Create(_config.Get<AlpacaConfig>()));
+            var alpacaConfig = _config.Get<AlpacaConfig>();
+            var env = alpacaConfig.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
+            var key = new SecretKey(alpacaConfig.Alpaca_App_Id, alpacaConfig.Alpaca_Secret_Key);
+
+            _alpacaClient = new AlpacaClient(
+                Options.Create(alpacaConfig), 
+                env.GetAlpacaTradingClient(key), 
+                env.GetAlpacaStreamingClient(key), 
+                env.GetAlpacaDataClient(key), 
+                env.GetAlpacaDataStreamingClient(key)
+            );
+
             _mockAlpacaClient = new Mock<IAlpacaClient>();
             _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(100_000m);
 
             _context = new StockContext();
-            _context.Database.EnsureCreated();
+            _context.Database.EnsureDeleted();
+            _context.Database.EnsureCreated(); 
 
             _repo = new TrackingRepository(_context);
         }
@@ -89,19 +102,23 @@ namespace AutomaticStockTrader.Tests.Stategies
 
         private async Task<decimal> TestStrategy(IStrategy strategy, bool useHistoricalData = false)
         {
-            var strategyHandler = new StrategyHandler(Mock.Of<ILogger<StrategyHandler>>(), _mockAlpacaClient.Object, _repo, strategy, TradingFrequency.Minute, 0.1m);
             var totalMoneyMade = 0m;
 
-            foreach (var stock in _config.Get<StockConfig>().Stock_List.Take(5))
+            foreach (var stock in _config.Get<StockConfig>().Stock_List)
             {
-                await TestStrategyOnStock(strategyHandler, stock, useHistoricalData);
+                var strategyHandler = new StrategyHandler(Mock.Of<ILogger<StrategyHandler>>(), _mockAlpacaClient.Object, _repo, strategy, TradingFrequency.Minute, 0.1m, stock);
+
+                var closingPrice = await TestStrategyOnStock(strategyHandler, stock, useHistoricalData);
 
                 var orders = _context.Orders
                     .Where(x => x.Position.StockSymbol == stock)
-                    .Select(x => x.ActualSharesBought.Value * x.ActualCostPerShare.Value)
-                    .AsEnumerable();
+                    .Select(x => new { quantity = x.ActualSharesBought.Value, price = x.ActualCostPerShare.Value })
+                    .ToList();            
 
-                var moneyMade = orders.Any() ? orders.Aggregate((x, y) => x + y) : 0;
+                var moneyMade = orders.Any() 
+                    ? (orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) + orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice) * (-1)
+                    : 0;
+
                 Debug.WriteLine($"Money made on {stock}: {moneyMade}");
              
                 totalMoneyMade += moneyMade;
@@ -111,9 +128,9 @@ namespace AutomaticStockTrader.Tests.Stategies
             return totalMoneyMade;
         }
 
-        private async Task TestStrategyOnStock(StrategyHandler strategy, string stock, bool useHistoricaData)
+        private async Task<decimal> TestStrategyOnStock(StrategyHandler strategy, string stock, bool useHistoricaData)
         {
-            var data = (await _alpacaClient.GetStockData(stock)).OrderByDescending(x => x.Time).ToList();
+            var data = (await _alpacaClient.GetStockData(stock)).OrderBy(x => x.Time).ToList();
 
             var sizeOfTestSet = useHistoricaData ? data.Count / 5 : data.Count;
             var testData = data.Take(sizeOfTestSet);
@@ -121,6 +138,7 @@ namespace AutomaticStockTrader.Tests.Stategies
             strategy.HistoricalData.Clear();
             strategy.HistoricalData.AddRange(data.Skip(sizeOfTestSet).ToList());
 
+            var lastPrice = 0m;
             foreach (var min in testData)
             {
                 _mockAlpacaClient
@@ -128,7 +146,10 @@ namespace AutomaticStockTrader.Tests.Stategies
                     .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(min.StockSymbol, min.ClosingPrice, o.SharesBought).Wait());
 
                 await strategy.HandleMinuteAgg(min);
+                lastPrice = min.ClosingPrice;
             }
+
+            return lastPrice;
         }
     }
 }

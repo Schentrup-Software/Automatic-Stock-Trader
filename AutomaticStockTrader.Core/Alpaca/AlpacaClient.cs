@@ -19,16 +19,19 @@ namespace AutomaticStockTrader.Core.Alpaca
         
         private bool disposedValue;
 
-        public AlpacaClient(IOptions<AlpacaConfig> config)
+        public AlpacaClient(
+            IOptions<AlpacaConfig> config,
+            IAlpacaTradingClient alpacaTradingClient,
+            IAlpacaStreamingClient alpacaTradingStreamingClient,
+            IAlpacaDataClient alpacaDataClient,
+            IAlpacaDataStreamingClient alpacaDataStreamingClient
+            )
         {
-            _config = config.Value;
-            var env = _config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
-            var key = new SecretKey(_config.Alpaca_App_Id, _config.Alpaca_Secret_Key);
-            
-            _alpacaTradingClient = env.GetAlpacaTradingClient(key);
-            _alpacaTradingStreamingClient = env.GetAlpacaStreamingClient(key);
-            _alpacaDataClient = env.GetAlpacaDataClient(key);
-            _alpacaDataStreamingClient = env.GetAlpacaDataStreamingClient(key);
+            _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
+            _alpacaTradingClient = alpacaTradingClient ?? throw new ArgumentNullException(nameof(alpacaTradingClient));
+            _alpacaTradingStreamingClient = alpacaTradingStreamingClient ?? throw new ArgumentNullException(nameof(alpacaTradingStreamingClient));
+            _alpacaDataClient = alpacaDataClient ?? throw new ArgumentNullException(nameof(alpacaDataClient));
+            _alpacaDataStreamingClient = alpacaDataStreamingClient ?? throw new ArgumentNullException(nameof(alpacaDataStreamingClient));
         }
 
         public async Task<bool> ConnectStreamApi()
@@ -72,7 +75,7 @@ namespace AutomaticStockTrader.Core.Alpaca
             => _alpacaTradingClient.PostOrderAsync(
                 new NewOrderRequest(
                     symbol: strategy.StockSymbol,
-                    quantity: order.SharesBought,
+                    quantity: order.SharesBought > 0 ? order.SharesBought : order.SharesBought * (-1),
                     side: order.SharesBought > 0 ? OrderSide.Buy : OrderSide.Sell,
                     type: OrderType.Market,
                     duration: TimeInForce.Ioc));

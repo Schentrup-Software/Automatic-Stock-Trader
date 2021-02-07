@@ -26,6 +26,9 @@
   <ItemGroup>
     <ProjectReference Include="..\AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj" />
     <ProjectReference Include="..\AutomaticStockTrader.Repository\AutomaticStockTrader.Repository.csproj" />
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>AutomaticStockTrader.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>

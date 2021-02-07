@@ -14,10 +14,10 @@ namespace AutomaticStockTrader.Core.Strategies.MeanReversionStrategy
         {
             if (HistoricalData.Count > 20)
             {
-                HistoricalData = HistoricalData.OrderByDescending(x => x.Time).Take(20).ToList();
+                var histData = HistoricalData.OrderByDescending(x => x.Time).Take(20).ToList();
 
-                var avg = HistoricalData.Select(x => x.ClosingPrice).Average();
-                var diff = avg - HistoricalData.OrderByDescending(x => x.Time).First().ClosingPrice;
+                var avg = histData.Select(x => x.ClosingPrice).Average();
+                var diff = avg - histData.OrderByDescending(x => x.Time).First().ClosingPrice;
 
                 return Task.FromResult<bool?>(diff >= 0);
             }

@@ -47,6 +47,7 @@ namespace AutomaticStockTrader
         {
             if (_context.IsUsingDefault)
             {
+                await _context.Database.EnsureDeletedAsync(cancellationToken);
                 await _context.Database.EnsureCreatedAsync(cancellationToken);              
             }
             else
@@ -73,18 +74,15 @@ namespace AutomaticStockTrader
 
             foreach (var strategy in _strategies)
             {
-                foreach (var stockSymbol in _stockConfig.Stock_List)
+                var stockData = await _alpacaClient.GetStockData(strategy.StockSymbol);
+
+                if ((stockData?.Count ?? 0) == 0)
                 {
-                    var stockData = await _alpacaClient.GetStockData(stockSymbol);
-
-                    if ((stockData?.Count ?? 0) == 0)
-                    {
-                        throw new ArgumentException($"You stock symbol {stockSymbol} is not valid.", nameof(_stockConfig));
-                    }
-
-                    strategy.HistoricalData.AddRange(stockData);
-                    _alpacaClient.SubscribeMinuteAgg(stockSymbol, async y => await strategy.HandleMinuteAgg(y));
+                    throw new ArgumentException($"You stock symbol {strategy.StockSymbol} is not valid.", nameof(_stockConfig));
                 }
+
+                strategy.HistoricalData.AddRange(stockData);
+                _alpacaClient.SubscribeMinuteAgg(strategy.StockSymbol, async y => await strategy.HandleMinuteAgg(y));
             }
         }
 

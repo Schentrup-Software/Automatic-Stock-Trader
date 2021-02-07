@@ -17,6 +17,9 @@ using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
 using Microsoft.Extensions.Options;
 using AutomaticStockTrader.Repository;
 using Microsoft.Extensions.Logging;
+using Alpaca.Markets;
+using Environments = Alpaca.Markets.Environments;
+using Microsoft.Extensions.Configuration;
 
 class Program
 {
@@ -66,41 +69,69 @@ class Program
                     .Configure<MLConfig>(Config)
                     .Configure<DatabaseConfig>(Config);
 
+                var (env, key) = GetAlpacaConfig(Config.Get<AlpacaConfig>());
+
                 services
                     .AddHostedService<StartAutoTrade>()
-                    .AddDbContext<StockContext>()
+                    .AddDbContext<StockContext>(ServiceLifetime.Transient)
+                    .AddSingleton(x => env.GetAlpacaTradingClient(key))
+                    .AddSingleton(x => env.GetAlpacaStreamingClient(key))
+                    .AddSingleton(x => env.GetAlpacaDataClient(key))
+                    .AddSingleton(x => env.GetAlpacaDataStreamingClient(key))
                     .AddSingleton<IAlpacaClient, AlpacaClient>()
                     .AddTransient<ITrackingRepository, TrackingRepository>()
                     .AddTransient(services => {
                         var config = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
+                        var stockConfig = services.GetRequiredService<IOptions<StockConfig>>().Value;
 
                         return config.Trading_Strategies
                             .Select((x, i) => x switch
                             {
-                                nameof(MeanReversionStrategy) => new StrategyHandler(
-                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
-                                    services.GetRequiredService<IAlpacaClient>(),
-                                    services.GetRequiredService<ITrackingRepository>(),
-                                    new MeanReversionStrategy(),
-                                    config.Trading_Freqencies.ElementAtOrDefault(i),
-                                    config.Percentage_Of_Equity_Per_Position),
-                                nameof(MLStrategy) => new StrategyHandler(
-                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
-                                    services.GetRequiredService<IAlpacaClient>(),
-                                    services.GetRequiredService<ITrackingRepository>(),
-                                    new MLStrategy(services.GetRequiredService<IOptions<MLConfig>>().Value),
-                                    config.Trading_Freqencies.ElementAtOrDefault(i),
-                                    config.Percentage_Of_Equity_Per_Position),
-                                nameof(MicrotrendStrategy) => new StrategyHandler(
-                                    services.GetRequiredService<ILogger<StrategyHandler>>(),
-                                    services.GetRequiredService<IAlpacaClient>(),
-                                    services.GetRequiredService<ITrackingRepository>(),
-                                    new MicrotrendStrategy(),
-                                    config.Trading_Freqencies.ElementAtOrDefault(i),
-                                    config.Percentage_Of_Equity_Per_Position),
+                                nameof(MeanReversionStrategy) => 
+                                    stockConfig.Stock_List.Select(stockSymbol => 
+                                        new StrategyHandler(
+                                            services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                            services.GetRequiredService<IAlpacaClient>(),
+                                            services.GetRequiredService<ITrackingRepository>(),
+                                            new MeanReversionStrategy(),
+                                            config.Trading_Freqencies.ElementAtOrDefault(i),
+                                            config.Percentage_Of_Equity_Per_Position,
+                                            stockSymbol)
+                                        ),
+                                nameof(MLStrategy) =>
+                                    stockConfig.Stock_List.Select(stockSymbol => 
+                                        new StrategyHandler(
+                                            services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                            services.GetRequiredService<IAlpacaClient>(),
+                                            services.GetRequiredService<ITrackingRepository>(),
+                                            new MLStrategy(services.GetRequiredService<IOptions<MLConfig>>().Value),
+                                            config.Trading_Freqencies.ElementAtOrDefault(i),
+                                            config.Percentage_Of_Equity_Per_Position,
+                                            stockSymbol)
+                                        ),
+                                nameof(MicrotrendStrategy) =>
+                                    stockConfig.Stock_List.Select(stockSymbol =>
+                                        new StrategyHandler(
+                                            services.GetRequiredService<ILogger<StrategyHandler>>(),
+                                            services.GetRequiredService<IAlpacaClient>(),
+                                            services.GetRequiredService<ITrackingRepository>(),
+                                            new MicrotrendStrategy(),
+                                            config.Trading_Freqencies.ElementAtOrDefault(i),
+                                            config.Percentage_Of_Equity_Per_Position,
+                                            stockSymbol)
+                                        ),
                                 _ => throw new ArgumentException($"Strategy with name of '{x}' is not valid")
-                            });
+                            })
+                            .SelectMany(x => x);
                         }
                     ); 
             });
+
+    private static (IEnvironment env, SecurityKey key) GetAlpacaConfig(AlpacaConfig config)
+    {
+        var env = config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
+        var key = new SecretKey(config.Alpaca_App_Id, config.Alpaca_Secret_Key);
+
+        return (env, key);
+    }
 }
