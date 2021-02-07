@@ -16,6 +16,7 @@ using AutomaticStockTrader.Repository.Models;
 using Order = AutomaticStockTrader.Domain.Order;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Alpaca.Markets;
 
 namespace AutomaticStockTrader.Tests.Stategies
 {
@@ -37,14 +38,24 @@ namespace AutomaticStockTrader.Tests.Stategies
                 .AddEnvironmentVariables()
                 .Build();
 
-            _alpacaClient = new AlpacaClient(Options.Create(_config.Get<AlpacaConfig>()));
+            var alpacaConfig = _config.Get<AlpacaConfig>();
+            var env = alpacaConfig.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
+            var key = new SecretKey(alpacaConfig.Alpaca_App_Id, alpacaConfig.Alpaca_Secret_Key);
+
+            _alpacaClient = new AlpacaClient(
+                Options.Create(alpacaConfig), 
+                env.GetAlpacaTradingClient(key), 
+                env.GetAlpacaStreamingClient(key), 
+                env.GetAlpacaDataClient(key), 
+                env.GetAlpacaDataStreamingClient(key)
+            );
+
             _mockAlpacaClient = new Mock<IAlpacaClient>();
             _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(100_000m);
 
             _context = new StockContext();
             _context.Database.EnsureDeleted();
-            _context.Database.EnsureCreated();
-           
+            _context.Database.EnsureCreated(); 
 
             _repo = new TrackingRepository(_context);
         }

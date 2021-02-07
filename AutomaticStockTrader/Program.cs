@@ -17,6 +17,8 @@ using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
 using Microsoft.Extensions.Options;
 using AutomaticStockTrader.Repository;
 using Microsoft.Extensions.Logging;
+using Alpaca.Markets;
+using Environments = Alpaca.Markets.Environments;
 
 class Program
 {
@@ -66,9 +68,14 @@ class Program
                     .Configure<MLConfig>(Config)
                     .Configure<DatabaseConfig>(Config);
 
+
                 services
                     .AddHostedService<StartAutoTrade>()
                     .AddDbContext<StockContext>(ServiceLifetime.Transient)
+                    .AddSingleton(x => { var (env, key) = GetAlpacaConfig(x); return env.GetAlpacaTradingClient(key); })
+                    .AddSingleton(x => { var (env, key) = GetAlpacaConfig(x); return env.GetAlpacaStreamingClient(key); })
+                    .AddSingleton(x => { var (env, key) = GetAlpacaConfig(x); return env.GetAlpacaDataClient(key); })
+                    .AddSingleton(x => { var (env, key) = GetAlpacaConfig(x); return env.GetAlpacaDataStreamingClient(key); })
                     .AddSingleton<IAlpacaClient, AlpacaClient>()
                     .AddTransient<ITrackingRepository, TrackingRepository>()
                     .AddTransient(services => {
@@ -117,4 +124,14 @@ class Program
                         }
                     ); 
             });
+
+    private static (IEnvironment env, SecurityKey key) GetAlpacaConfig(IServiceProvider services)
+    {
+        var config = services.GetRequiredService<IOptions<AlpacaConfig>>().Value;
+
+        var env = config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
+        var key = new SecretKey(config.Alpaca_App_Id, config.Alpaca_Secret_Key);
+
+        return (env, key);
+    }
 }
