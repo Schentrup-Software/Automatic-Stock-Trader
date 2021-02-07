@@ -7,9 +7,12 @@ workers:
     deploy_on_push: true
     repo: Schentrup-Software/Automatic-Stock-Trader
   envs:
-  - key: STOCK_STRATEGY
+  - key: TRADING_STRATEGIES_RAW
     scope: RUN_TIME
-    value: MeanReversionStrategy
+    value: "MeanReversionStrategy, MicrotrendStrategy"
+  - key: TRADING_FREQENCIES_RAW
+    scope: RUN_TIME
+    value: "Minute, Minute"
   - key: STOCK_LIST_RAW
     scope: RUN_TIME
     value: "GE, XPEV, F, PLTR, BAC, NOK, ACB, PFE, FSR, VALE, BABA, WFC, XOM, T, PBR, ABEV, M, NCLH, PCG, MRO, AMC, DIS, DAL, FCX, BA, ET, BSX, C, SNAP, OXY, VRT, AUY, VIPS, SWN, UBER, MGM, GM, VER, JWN, NLY, LU, KMI, AMWL, COTY, TME"
