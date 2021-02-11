@@ -2,6 +2,10 @@
 
 A framework for building and testing minute to minute automatic trading using the [Alpaca API](https://alpaca.markets/).
 
+## Opening in Visual Studio
+
+You will need the `ASP.NET and web development` workflow installed in order to have the right tools to develop this application
+
 ## How to run
 
 ### Run using Digital Ocean
