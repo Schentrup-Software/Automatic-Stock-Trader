@@ -65,12 +65,12 @@ namespace AutomaticStockTrader
                 throw new ArgumentException($"No strategies given. You must provide at least on strategy.", nameof(_stockConfig));
             }
 
-            if (!await _alpacaClient.ConnectStreamApi())
+            if (!await _alpacaClient.ConnectStreamApis())
             {
                 throw new UnauthorizedAccessException("Failed to connect to streaming API. Authorization failed.");
             }
 
-            _alpacaClient.SubscribeToTradeUpdates(async order => await _trackingRepository.CompleteOrder(order.StockSymbol, order.MarketPrice, order.SharesBought));
+            _alpacaClient.SubscribeToTradeUpdates(async order => await _trackingRepository.CompleteOrder(order));
 
             foreach (var strategy in _strategies)
             {
@@ -82,8 +82,10 @@ namespace AutomaticStockTrader
                 }
 
                 strategy.HistoricalData.AddRange(stockData);
-                _alpacaClient.SubscribeMinuteAgg(strategy.StockSymbol, async y => await strategy.HandleMinuteAgg(y));
+                _alpacaClient.AddPendingMinuteAggSubscription(strategy.StockSymbol, async y => await strategy.HandleMinuteAgg(y));
             }
+
+            _alpacaClient.SubscribeToMinuteAgg();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

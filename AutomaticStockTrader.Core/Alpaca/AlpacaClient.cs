@@ -18,6 +18,7 @@ namespace AutomaticStockTrader.Core.Alpaca
         private readonly IAlpacaDataStreamingClient _alpacaDataStreamingClient;
         
         private bool disposedValue;
+        private IList<IAlpacaDataSubscription<IStreamAgg>> _alpacaDataSubscriptions;
 
         public AlpacaClient(
             IOptions<AlpacaConfig> config,
@@ -32,12 +33,19 @@ namespace AutomaticStockTrader.Core.Alpaca
             _alpacaTradingStreamingClient = alpacaTradingStreamingClient ?? throw new ArgumentNullException(nameof(alpacaTradingStreamingClient));
             _alpacaDataClient = alpacaDataClient ?? throw new ArgumentNullException(nameof(alpacaDataClient));
             _alpacaDataStreamingClient = alpacaDataStreamingClient ?? throw new ArgumentNullException(nameof(alpacaDataStreamingClient));
+
+            _alpacaDataSubscriptions = new List<IAlpacaDataSubscription<IStreamAgg>>();
         }
 
-        public async Task<bool> ConnectStreamApi()
-            => (await _alpacaDataStreamingClient.ConnectAndAuthenticateAsync()) == AuthStatus.Authorized;
+        public async Task<bool> ConnectStreamApis()
+        { 
+            var dataTask = _alpacaDataStreamingClient.ConnectAndAuthenticateAsync();
+            var tradingTask = _alpacaTradingStreamingClient.ConnectAndAuthenticateAsync();
 
-        public void SubscribeMinuteAgg(string stockSymbol, Action<StockInput> action)
+            return (await dataTask) == AuthStatus.Authorized && (await tradingTask) == AuthStatus.Authorized;
+        }
+
+        public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action)
         {
             void convertedAction(IStreamAgg newValue) => action(new StockInput
             {
@@ -48,8 +56,11 @@ namespace AutomaticStockTrader.Core.Alpaca
 
             var newClient = _alpacaDataStreamingClient.GetMinuteAggSubscription(stockSymbol);
             newClient.Received += convertedAction;
-            _alpacaDataStreamingClient.Subscribe(newClient);
+            _alpacaDataSubscriptions.Add(newClient); 
         }
+
+        public void SubscribeToMinuteAgg()
+            => _alpacaDataStreamingClient.Subscribe(_alpacaDataSubscriptions);
 
         public void SubscribeToTradeUpdates(Action<CompletedOrder> action)
         {
@@ -60,8 +71,8 @@ namespace AutomaticStockTrader.Core.Alpaca
                     action(new CompletedOrder
                     {
                         MarketPrice = trade.Price.Value,
-                        OrderPlacedTime = trade.TimestampUtc,
-                        SharesBought = trade.Order.OrderSide == OrderSide.Buy ? trade.Quantity.Value : trade.Quantity.Value * (-1),
+                        OrderPlacedTime = trade.TimestampUtc ?? DateTime.UtcNow,
+                        SharesBought = trade.Order.OrderSide == OrderSide.Buy ? trade.Order.FilledQuantity : trade.Order.FilledQuantity * (-1),
                         StockSymbol = trade.Order.Symbol
                     });
                 }

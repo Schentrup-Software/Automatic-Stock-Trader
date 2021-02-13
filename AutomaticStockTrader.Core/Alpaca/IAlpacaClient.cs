@@ -7,8 +7,9 @@ namespace AutomaticStockTrader.Core.Alpaca
 {
     public interface IAlpacaClient : IDisposable
     {
-        public Task<bool> ConnectStreamApi();
-        public void SubscribeMinuteAgg(string stockSymbol, Action<StockInput> action);
+        public Task<bool> ConnectStreamApis();
+        public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action);
+        public void SubscribeToMinuteAgg();
         public void SubscribeToTradeUpdates(Action<CompletedOrder> action);
         public Task PlaceOrder(StrategysStock postion, Order order);
         public Task EnsurePostionCleared(StrategysStock postion);

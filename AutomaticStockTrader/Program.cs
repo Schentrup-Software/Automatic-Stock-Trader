@@ -69,6 +69,16 @@ class Program
                     .Configure<MLConfig>(Config)
                     .Configure<DatabaseConfig>(Config);
 
+                services
+                    .AddLogging(opt =>
+                    {
+                        opt.AddSimpleConsole(opt =>
+                        {
+                            opt.TimestampFormat = "hh:mm:ss ";
+                            opt.SingleLine = true;
+                        });
+                    });
+
                 var (env, key) = GetAlpacaConfig(Config.Get<AlpacaConfig>());
 
                 services

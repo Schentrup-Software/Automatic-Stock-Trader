@@ -29,14 +29,14 @@ namespace AutomaticStockTrader.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task CompleteOrder(string stockSymbol, decimal price, long sharesBought)
+        public async Task CompleteOrder(Domain.CompletedOrder completedOrder)
         {
             var potentialOrders = _context.Orders
                 .Where(x =>
                     !x.ActualCostPerShare.HasValue &&
                     !x.ActualSharesBought.HasValue &&
-                    x.Position.StockSymbol == stockSymbol)
-                .Select(x => new { ShareDiff = Math.Abs(x.AttemptedSharesBought - sharesBought), Value = x })
+                    x.Position.StockSymbol == completedOrder.StockSymbol)
+                .Select(x => new { ShareDiff = Math.Abs(x.AttemptedSharesBought - completedOrder.SharesBought), Value = x })
                 .OrderBy(x => x.ShareDiff)
                 .ToList();
 
@@ -45,8 +45,8 @@ namespace AutomaticStockTrader.Repository
                 // If there are more than one portential orders, we just want to pick one closet to the attempted shares bought and assign it.
                 var order = potentialOrders.Select(x => x.Value).First(); 
 
-                order.ActualCostPerShare = price;
-                order.ActualSharesBought = sharesBought;
+                order.ActualCostPerShare = completedOrder.MarketPrice;
+                order.ActualSharesBought = completedOrder.SharesBought;
 
                 await _context.SaveChangesAsync();
             } 
