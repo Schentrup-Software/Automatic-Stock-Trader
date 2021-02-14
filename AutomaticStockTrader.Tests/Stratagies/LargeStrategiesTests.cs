@@ -143,9 +143,14 @@ namespace AutomaticStockTrader.Tests.Stategies
             {
                 _mockAlpacaClient
                     .Setup(x => x.PlaceOrder(It.Is<StrategysStock>(x => x.StockSymbol == min.StockSymbol), It.IsAny<Order>()))
-                    .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(min.StockSymbol, min.ClosingPrice, o.SharesBought).Wait());
+                    .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(new CompletedOrder 
+                    { 
+                        StockSymbol = min.StockSymbol, 
+                        MarketPrice = min.ClosingPrice, 
+                        SharesBought = o.SharesBought 
+                    }).Wait());
 
-                await strategy.HandleMinuteAgg(min);
+                await strategy.HandleNewData(min);
                 lastPrice = min.ClosingPrice;
             }
 

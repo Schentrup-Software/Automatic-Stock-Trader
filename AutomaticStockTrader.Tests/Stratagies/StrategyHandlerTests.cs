@@ -1,13 +1,10 @@
 ﻿using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Strategies;
-using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
 using AutomaticStockTrader.Domain;
 using AutomaticStockTrader.Repository;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AutomaticStockTrader.Tests.Stategies

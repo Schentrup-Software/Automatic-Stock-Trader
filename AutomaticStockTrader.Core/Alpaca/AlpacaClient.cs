@@ -18,6 +18,7 @@ namespace AutomaticStockTrader.Core.Alpaca
         private readonly IAlpacaDataStreamingClient _alpacaDataStreamingClient;
         
         private bool disposedValue;
+        private IDictionary<string, List<Action<StockInput>>> _stockActions;
 
         public AlpacaClient(
             IOptions<AlpacaConfig> config,
@@ -32,23 +33,50 @@ namespace AutomaticStockTrader.Core.Alpaca
             _alpacaTradingStreamingClient = alpacaTradingStreamingClient ?? throw new ArgumentNullException(nameof(alpacaTradingStreamingClient));
             _alpacaDataClient = alpacaDataClient ?? throw new ArgumentNullException(nameof(alpacaDataClient));
             _alpacaDataStreamingClient = alpacaDataStreamingClient ?? throw new ArgumentNullException(nameof(alpacaDataStreamingClient));
+
+            _stockActions = new Dictionary<string, List<Action<StockInput>>>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public async Task<bool> ConnectStreamApi()
-            => (await _alpacaDataStreamingClient.ConnectAndAuthenticateAsync()) == AuthStatus.Authorized;
+        public async Task<bool> ConnectStreamApis()
+        { 
+            var dataTask = _alpacaDataStreamingClient.ConnectAndAuthenticateAsync();
+            var tradingTask = _alpacaTradingStreamingClient.ConnectAndAuthenticateAsync();
 
-        public void SubscribeMinuteAgg(string stockSymbol, Action<StockInput> action)
+            return (await dataTask) == AuthStatus.Authorized && (await tradingTask) == AuthStatus.Authorized;
+        }
+
+        public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action)
         {
-            void convertedAction(IStreamAgg newValue) => action(new StockInput
+            if (_stockActions.TryGetValue(stockSymbol, out var actionList))
             {
-                ClosingPrice = newValue.Close,
-                Time = newValue.EndTimeUtc,
-                StockSymbol = stockSymbol
-            });
+                actionList.Add(action);
+            }
+            else
+            {
+                _stockActions.Add(stockSymbol, new List<Action<StockInput>> { action });
+            }
+        }
 
-            var newClient = _alpacaDataStreamingClient.GetMinuteAggSubscription(stockSymbol);
-            newClient.Received += convertedAction;
+        public void SubscribeToMinuteAgg()
+        {
+            var newClient = _alpacaDataStreamingClient.GetMinuteAggSubscription();
+            newClient.Received += HandleMinuteAgg;
             _alpacaDataStreamingClient.Subscribe(newClient);
+        }
+
+        private void HandleMinuteAgg(IStreamAgg newValue) 
+        {
+            if (_stockActions.TryGetValue(newValue.Symbol, out var actionList))
+            {
+                actionList.ForEach(action =>
+                    action(new StockInput
+                    {
+                        ClosingPrice = newValue.Close,
+                        Time = newValue.EndTimeUtc,
+                        StockSymbol = newValue.Symbol
+                    })
+                );
+            }
         }
 
         public void SubscribeToTradeUpdates(Action<CompletedOrder> action)
@@ -60,8 +88,8 @@ namespace AutomaticStockTrader.Core.Alpaca
                     action(new CompletedOrder
                     {
                         MarketPrice = trade.Price.Value,
-                        OrderPlacedTime = trade.TimestampUtc,
-                        SharesBought = trade.Order.OrderSide == OrderSide.Buy ? trade.Quantity.Value : trade.Quantity.Value * (-1),
+                        OrderPlacedTime = trade.TimestampUtc ?? DateTime.UtcNow,
+                        SharesBought = trade.Order.OrderSide == OrderSide.Buy ? trade.Order.FilledQuantity : trade.Order.FilledQuantity * (-1),
                         StockSymbol = trade.Order.Symbol
                     });
                 }
@@ -111,6 +139,18 @@ namespace AutomaticStockTrader.Core.Alpaca
             });
 
             return GetStockInputs(stockSymbol, stockData[stockSymbol]);
+        }
+
+        public async Task<IEnumerable<DateTime>> GetAllTradingHolidays(DateTime? start = null, DateTime? end = null)
+        {
+            var startValue = start ?? DateTime.UtcNow;
+            var endValue = end ?? startValue.AddYears(10);
+
+            var tradingDays = (await _alpacaTradingClient.ListCalendarAsync(new CalendarRequest().SetInclusiveTimeInterval(startValue, endValue))).Select(x => x.TradingDateUtc.Date);
+            var allDays = Enumerable.Range(0, 1 + endValue.Subtract(startValue).Days)
+                              .Select(offset => startValue.AddDays(offset).Date);
+
+            return allDays.Except(tradingDays);
         }
 
         private static IList<StockInput> GetStockInputs(string stockSymbol, IEnumerable<IAgg> aggs) => aggs

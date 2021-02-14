@@ -4,11 +4,18 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Alpaca.Markets" Version="3.9.1" />
+    <PackageReference Include="Alpaca.Markets" Version="4.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.ML" Version="1.5.2" />
-    <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.5.2" />
+    <PackageReference Include="Microsoft.ML" Version="1.5.4" />
+    <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.5.4" />
+    <PackageReference Include="Quartz" Version="3.2.4" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.2.4" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.2.4" />
   </ItemGroup>
 
   <ItemGroup>

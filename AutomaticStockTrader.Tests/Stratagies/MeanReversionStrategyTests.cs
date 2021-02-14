@@ -1,9 +1,6 @@
-﻿using AutomaticStockTrader.Core.Alpaca;
-using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
+﻿using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
 using AutomaticStockTrader.Domain;
-using AutomaticStockTrader.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +30,9 @@ namespace AutomaticStockTrader.Tests.Stategies
         {
             var now = DateTime.Now;
             _histoicData.Add(new StockInput { ClosingPrice = 0.5m, Time = now });
+            _histoicData = _histoicData
+                .OrderByDescending(x => x.Time)
+                .ToList();
 
             var result = await _strategy.ShouldBuyStock(_histoicData);
 
@@ -49,7 +49,9 @@ namespace AutomaticStockTrader.Tests.Stategies
                 new StockInput {ClosingPrice = 11, Time = now.AddMinutes(-3)},
                 new StockInput {ClosingPrice = 9, Time = now.AddMinutes(-2)},
                 new StockInput { ClosingPrice = 10, Time = now },
-            };
+            }
+            .OrderByDescending(x => x.Time)
+            .ToList();
 
             var result = await _strategy.ShouldBuyStock(_histoicData);
 
@@ -61,6 +63,9 @@ namespace AutomaticStockTrader.Tests.Stategies
         {
             var now = DateTime.Now;
             _histoicData.Add(new StockInput { ClosingPrice = 4, Time = now });
+            _histoicData = _histoicData
+                .OrderByDescending(x => x.Time)
+                .ToList();
 
             var result = await _strategy.ShouldBuyStock(_histoicData);
 

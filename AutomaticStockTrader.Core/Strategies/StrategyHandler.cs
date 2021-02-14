@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Domain;
@@ -14,15 +15,22 @@ namespace AutomaticStockTrader.Core.Strategies
         private readonly IAlpacaClient _alpacaClient;
         private readonly ITrackingRepository _trackingRepository;
         private readonly IStrategy _strategy;
-        private readonly TradingFrequency _frequency;     
 
+        private readonly TradingFrequency _tradingFrequency;
+        private readonly string _stockSymbol;
         private readonly decimal _percentageOfEquityToAllocate;
         private bool disposedValue;
-
-        public readonly string StockSymbol;
+      
         public readonly List<StockInput> HistoricalData;
-        
-        public StrategyHandler(
+
+        public StrategysStock StockStrategy => new StrategysStock
+        {
+            StockSymbol = _stockSymbol,
+            Strategy = _strategy.GetType().Name,
+            TradingFrequency = _tradingFrequency
+        };
+
+    public StrategyHandler(
             ILogger<StrategyHandler> logger,
             IAlpacaClient alpacaClient, 
             ITrackingRepository trackingRepository,
@@ -35,43 +43,42 @@ namespace AutomaticStockTrader.Core.Strategies
             _alpacaClient = alpacaClient ?? throw new ArgumentException(nameof(alpacaClient));
             _trackingRepository = trackingRepository ?? throw new ArgumentException(nameof(trackingRepository));
             _strategy = strategy ?? throw new ArgumentException(nameof(strategy));
-            _frequency = frequency;
+            _tradingFrequency = frequency;
             _percentageOfEquityToAllocate = percentageOfEquityToAllocate;
-            StockSymbol = stockSymbol;
+            _stockSymbol = stockSymbol;
 
             HistoricalData = new List<StockInput>();
         }
 
-        public virtual async Task HandleMinuteAgg(StockInput newValue)
+        public async Task HandleNewData(StockInput newValue)
         {
-            if(!string.Equals(newValue.StockSymbol, StockSymbol, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.Equals(newValue.StockSymbol, _stockSymbol, StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new InvalidOperationException($"Cannot handle {newValue.StockSymbol} stock with {StockSymbol} handler.");
+                throw new InvalidOperationException($"Cannot handle {newValue.StockSymbol} stock with {_stockSymbol} handler.");
             }
 
             HistoricalData.Add(newValue);
-            var result = await _strategy.ShouldBuyStock(HistoricalData);
+            await RunStrategy(HistoricalData);
+        }
 
-            var stockStrategy = new StrategysStock
-            {
-                StockSymbol = StockSymbol,
-                Strategy = _strategy.GetType().Name,
-                TradingFrequency = _frequency
-            };
+        public async Task RunStrategy(IList<StockInput> historicalData)
+        {
+            historicalData = historicalData.OrderByDescending(x => x.Time).ToList();
+            var result = await _strategy.ShouldBuyStock(historicalData);
 
             if (result.HasValue && result.Value)
             {
-                await HandleBuy(newValue.ClosingPrice, stockStrategy);
-                _logger.LogInformation($"{_strategy.GetType().Name} is having a position in {StockSymbol}");
+                await HandleBuy(historicalData.First().ClosingPrice, StockStrategy);
+                _logger.LogInformation($"{_strategy.GetType().Name} is having a position in {_stockSymbol}");
             }
             else if (result.HasValue && !result.Value)
             {
-                await HandleSell(newValue.ClosingPrice, stockStrategy);
-                _logger.LogInformation($"{_strategy.GetType().Name} is not having a position in {StockSymbol}.");
+                await HandleSell(historicalData.First().ClosingPrice, StockStrategy);
+                _logger.LogInformation($"{_strategy.GetType().Name} is not having a position in {_stockSymbol}.");
             }
             else
             {
-                _logger.LogInformation($"{_strategy.GetType().Name} is not buying or selling {StockSymbol}");
+                _logger.LogInformation($"{_strategy.GetType().Name} is not buying or selling {_stockSymbol}");
             }
         }
 
