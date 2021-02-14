@@ -150,7 +150,7 @@ namespace AutomaticStockTrader.Tests.Stategies
                         SharesBought = o.SharesBought 
                     }).Wait());
 
-                await strategy.HandleMinuteAgg(min);
+                await strategy.HandleNewData(min);
                 lastPrice = min.ClosingPrice;
             }
 

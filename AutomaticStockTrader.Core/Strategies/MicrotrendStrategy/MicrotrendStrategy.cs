@@ -9,9 +9,9 @@ namespace AutomaticStockTrader.Core.Strategies.MicrotrendStrategy
 {
     public class MicrotrendStrategy : IStrategy
     {
-        public Task<bool?> ShouldBuyStock(IList<StockInput> HistoricalData)
+        public Task<bool?> ShouldBuyStock(IList<StockInput> historicalData)
         {
-            var last3Values = HistoricalData.OrderByDescending(x => x.Time).Take(3).Select(x => x.ClosingPrice).ToList();
+            var last3Values = historicalData.Take(3).Select(x => x.ClosingPrice).ToList();
 
             //Default to hold
             var result = (bool?) null;
