@@ -18,7 +18,7 @@ namespace AutomaticStockTrader.Core.Alpaca
         private readonly IAlpacaDataStreamingClient _alpacaDataStreamingClient;
         
         private bool disposedValue;
-        private IList<IAlpacaDataSubscription<IStreamAgg>> _alpacaDataSubscriptions;
+        private IDictionary<string, List<Action<StockInput>>> _stockActions;
 
         public AlpacaClient(
             IOptions<AlpacaConfig> config,
@@ -34,7 +34,7 @@ namespace AutomaticStockTrader.Core.Alpaca
             _alpacaDataClient = alpacaDataClient ?? throw new ArgumentNullException(nameof(alpacaDataClient));
             _alpacaDataStreamingClient = alpacaDataStreamingClient ?? throw new ArgumentNullException(nameof(alpacaDataStreamingClient));
 
-            _alpacaDataSubscriptions = new List<IAlpacaDataSubscription<IStreamAgg>>();
+            _stockActions = new Dictionary<string, List<Action<StockInput>>>(StringComparer.OrdinalIgnoreCase);
         }
 
         public async Task<bool> ConnectStreamApis()
@@ -47,20 +47,37 @@ namespace AutomaticStockTrader.Core.Alpaca
 
         public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action)
         {
-            void convertedAction(IStreamAgg newValue) => action(new StockInput
+            if (_stockActions.TryGetValue(stockSymbol, out var actionList))
             {
-                ClosingPrice = newValue.Close,
-                Time = newValue.EndTimeUtc,
-                StockSymbol = stockSymbol
-            });
-
-            var newClient = _alpacaDataStreamingClient.GetMinuteAggSubscription(stockSymbol);
-            newClient.Received += convertedAction;
-            _alpacaDataSubscriptions.Add(newClient); 
+                actionList.Add(action);
+            }
+            else
+            {
+                _stockActions.Add(stockSymbol, new List<Action<StockInput>> { action });
+            }
         }
 
         public void SubscribeToMinuteAgg()
-            => _alpacaDataStreamingClient.Subscribe(_alpacaDataSubscriptions);
+        {
+            var newClient = _alpacaDataStreamingClient.GetMinuteAggSubscription();
+            newClient.Received += HandleMinuteAgg;
+            _alpacaDataStreamingClient.Subscribe(newClient);
+        }
+
+        private void HandleMinuteAgg(IStreamAgg newValue) 
+        {
+            if (_stockActions.TryGetValue(newValue.Symbol, out var actionList))
+            {
+                actionList.ForEach(action =>
+                    action(new StockInput
+                    {
+                        ClosingPrice = newValue.Close,
+                        Time = newValue.EndTimeUtc,
+                        StockSymbol = newValue.Symbol
+                    })
+                );
+            }
+        }
 
         public void SubscribeToTradeUpdates(Action<CompletedOrder> action)
         {
@@ -123,6 +140,13 @@ namespace AutomaticStockTrader.Core.Alpaca
 
             return GetStockInputs(stockSymbol, stockData[stockSymbol]);
         }
+
+        public async Task<DateTimeOffset> GetNextIncludedTimeUtc(DateTimeOffset time)
+            => (await _alpacaTradingClient.ListCalendarAsync(new CalendarRequest().SetInclusiveTimeInterval(time.UtcDateTime, time.UtcDateTime))).Min(x => x.TradingOpenTimeUtc);
+
+        public async Task<bool> IsTimeIncluded(DateTimeOffset time)
+            => (await _alpacaTradingClient.ListCalendarAsync(new CalendarRequest().SetInclusiveTimeInterval(time.UtcDateTime, time.UtcDateTime))).Any(x => x.TradingCloseTimeUtc > time.UtcDateTime && x.TradingOpenTimeUtc < time.UtcDateTime);
+        
 
         private static IList<StockInput> GetStockInputs(string stockSymbol, IEnumerable<IAgg> aggs) => aggs
             .Select((x, i) => new StockInput

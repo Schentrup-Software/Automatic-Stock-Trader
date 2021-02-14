@@ -1,5 +1,6 @@
 ﻿using AutomaticStockTrader.Repository.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -81,6 +82,17 @@ namespace AutomaticStockTrader.Repository
                         ?.Aggregate((x, y) => x + y) ?? 0
             };
         }
+
+        public IEnumerable<Domain.Order> GetCompletedOrders(Domain.StrategysStock strategysStock)
+            => GetStatagysStockFromDb(strategysStock).Orders
+                .Where(x => x.ActualCostPerShare.HasValue && x.ActualSharesBought.HasValue)
+                .Select(x => new Domain.Order
+                {
+                    MarketPrice = x.ActualCostPerShare.Value,
+                    OrderPlacedTime = x.OrderPlaced.UtcDateTime,
+                    SharesBought = x.ActualSharesBought.Value
+                });
+        
 
         private StratagysStock GetStatagysStockFromDb(Domain.StrategysStock strategysStock)
             => _context.StratagysStocks.SingleOrDefault(x =>
