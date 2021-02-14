@@ -2,23 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Configuration;
 using AutomaticStockTrader.Repository.Configuration;
 using AutomaticStockTrader.Core;
-using AutomaticStockTrader.Repository.Models;
-using AutomaticStockTrader;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using AutomaticStockTrader.Core.Strategies;
-using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
-using AutomaticStockTrader.Core.Strategies.MLStrategy;
-using AutomaticStockTrader.Core.Strategies.MicrotrendStrategy;
-using Microsoft.Extensions.Options;
-using AutomaticStockTrader.Repository;
 using Microsoft.Extensions.Logging;
-using Alpaca.Markets;
-using Environments = Alpaca.Markets.Environments;
 using Microsoft.Extensions.Configuration;
 
 class Program

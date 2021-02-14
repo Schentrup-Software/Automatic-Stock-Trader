@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Configuration;
 using AutomaticStockTrader.Domain;
-using AutomaticStockTrader.Repository;
-using Microsoft.Extensions.Options;
 
 namespace AutomaticStockTrader.Core.Strategies.MLStrategy
 {

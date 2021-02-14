@@ -34,6 +34,7 @@ namespace AutomaticStockTrader.Core
                 .AddSingleton(x => env.GetAlpacaDataStreamingClient(key))
                 .AddSingleton<IAlpacaClient, AlpacaClient>()
                 .AddTransient<ITrackingRepository, TrackingRepository>()
+                .AddTransient<ScheduledTrader>()
                 .AddTransient(services =>
                 {
                     var strategyConfig = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
@@ -80,20 +81,38 @@ namespace AutomaticStockTrader.Core
                         .SelectMany(x => x);
                 });
 
-            services.AddQuartz(q =>
-            {
-                const string tradingDays = "TradingDaysCalendar";
-                q.AddCalendar(tradingDays, services.BuildServiceProvider().GetRequiredService<AlpacaCalendar>(), true, true);
+            var holidayCalendar = new HolidayCalendar();
+            services
+                .BuildServiceProvider()
+                .GetRequiredService<IAlpacaClient>()
+                .GetAllTradingHolidays()
+                .Result
+                .ToList()
+                .ForEach(x => holidayCalendar.AddExcludedDate(x));
 
-                q.ScheduleJob<ScheduledTrader>(trigger =>
-                    trigger
-                        .StartNow()
-                        .WithDailyTimeIntervalSchedule(schd => schd
-                            .OnMondayThroughFriday()
-                            .StartingDailyAt(new TimeOfDay(14, 45)))
-                        .ModifiedByCalendar(tradingDays)
-                );
-            });
+            services
+                .AddQuartzHostedService()
+                .AddQuartz(quartz =>
+                {
+                    quartz.UseMicrosoftDependencyInjectionJobFactory();
+
+                    const string tradingHolidays = "Trading Holidays";
+                    quartz
+                        .AddCalendar(tradingHolidays, holidayCalendar, true, true)
+#if DEBUG
+                        .ScheduleJob<ScheduledTrader>(trigger => trigger
+                            .StartNow()
+                            .WithSimpleSchedule(sched => sched
+                                .WithIntervalInSeconds(1)
+                                .WithRepeatCount(0)));
+#else
+                        .ScheduleJob<ScheduledTrader>(trigger => trigger
+                            .StartNow()
+                            .WithDailyTimeIntervalSchedule(schd => schd
+                                .StartingDailyAt(new TimeOfDay(14, 45)))
+                            .ModifiedByCalendar(tradingHolidays));
+#endif
+                });
 
             return services;
         }

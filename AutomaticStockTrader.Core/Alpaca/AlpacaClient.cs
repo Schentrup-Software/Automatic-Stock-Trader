@@ -141,12 +141,17 @@ namespace AutomaticStockTrader.Core.Alpaca
             return GetStockInputs(stockSymbol, stockData[stockSymbol]);
         }
 
-        public async Task<DateTimeOffset> GetNextIncludedTimeUtc(DateTimeOffset time)
-            => (await _alpacaTradingClient.ListCalendarAsync(new CalendarRequest().SetInclusiveTimeInterval(time.UtcDateTime, time.UtcDateTime))).Min(x => x.TradingOpenTimeUtc);
+        public async Task<IEnumerable<DateTime>> GetAllTradingHolidays(DateTime? start = null, DateTime? end = null)
+        {
+            var startValue = start ?? DateTime.UtcNow;
+            var endValue = end ?? startValue.AddYears(10);
 
-        public async Task<bool> IsTimeIncluded(DateTimeOffset time)
-            => (await _alpacaTradingClient.ListCalendarAsync(new CalendarRequest().SetInclusiveTimeInterval(time.UtcDateTime, time.UtcDateTime))).Any(x => x.TradingCloseTimeUtc > time.UtcDateTime && x.TradingOpenTimeUtc < time.UtcDateTime);
-        
+            var tradingDays = (await _alpacaTradingClient.ListCalendarAsync(new CalendarRequest().SetInclusiveTimeInterval(startValue, endValue))).Select(x => x.TradingDateUtc.Date);
+            var allDays = Enumerable.Range(0, 1 + endValue.Subtract(startValue).Days)
+                              .Select(offset => startValue.AddDays(offset).Date);
+
+            return allDays.Except(tradingDays);
+        }
 
         private static IList<StockInput> GetStockInputs(string stockSymbol, IEnumerable<IAgg> aggs) => aggs
             .Select((x, i) => new StockInput

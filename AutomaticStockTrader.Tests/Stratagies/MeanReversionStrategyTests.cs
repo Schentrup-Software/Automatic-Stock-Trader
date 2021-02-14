@@ -1,9 +1,6 @@
-﻿using AutomaticStockTrader.Core.Alpaca;
-using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
+﻿using AutomaticStockTrader.Core.Strategies.MeanReversionStrategy;
 using AutomaticStockTrader.Domain;
-using AutomaticStockTrader.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;

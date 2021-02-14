@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using AutomaticStockTrader.Core.Alpaca;
 using AutomaticStockTrader.Core.Strategies;
 using AutomaticStockTrader.Repository;
-using AutomaticStockTrader.Repository.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 
 namespace AutomaticStockTrader
@@ -25,7 +23,7 @@ namespace AutomaticStockTrader
         )
         {
             _alpacaClient = alpacaClient ?? throw new ArgumentNullException(nameof(alpacaClient));
-            _strategies = strategies?.Where(x => x.StockStrategy.TradingFrequency == Domain.TradingFrequency.Minute) ?? throw new ArgumentNullException(nameof(strategies));
+            _strategies = strategies ?? throw new ArgumentNullException(nameof(strategies));
             _trackingRepository = trackingRepository ?? throw new ArgumentNullException(nameof(trackingRepository));
         }
 
@@ -43,7 +41,7 @@ namespace AutomaticStockTrader
 
             _alpacaClient.SubscribeToTradeUpdates(async order => await _trackingRepository.CompleteOrder(order));
 
-            foreach (var strategy in _strategies)
+            foreach (var strategy in _strategies.Where(x => x.StockStrategy.TradingFrequency == Domain.TradingFrequency.Minute))
             {
                 var stockData = await _alpacaClient.GetStockData(strategy.StockStrategy.StockSymbol);
 
