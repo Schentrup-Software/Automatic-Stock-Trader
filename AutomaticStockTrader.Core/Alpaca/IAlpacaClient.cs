@@ -8,6 +8,7 @@ namespace AutomaticStockTrader.Core.Alpaca
     public interface IAlpacaClient : IDisposable
     {
         public Task<bool> ConnectStreamApis();
+        public Task DisconnectStreamApis();
         public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action);
         public void SubscribeToMinuteAgg();
         public void SubscribeToTradeUpdates(Action<CompletedOrder> action);

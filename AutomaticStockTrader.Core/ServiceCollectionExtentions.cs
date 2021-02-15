@@ -27,7 +27,6 @@ namespace AutomaticStockTrader.Core
             services
                 .AddDbContext<StockContext>(ServiceLifetime.Transient)
                 .AddHostedService<InitStockContext>()
-                .AddHostedService<StreamingTrader>()
                 .AddSingleton(x => env.GetAlpacaTradingClient(key))
                 .AddSingleton(x => env.GetAlpacaStreamingClient(key))
                 .AddSingleton(x => env.GetAlpacaDataClient(key))
@@ -35,6 +34,8 @@ namespace AutomaticStockTrader.Core
                 .AddSingleton<IAlpacaClient, AlpacaClient>()
                 .AddTransient<ITrackingRepository, TrackingRepository>()
                 .AddTransient<ScheduledTrader>()
+                .AddTransient<StartStreamingTrader>()
+                .AddTransient<CloseStreamingTrading>()
                 .AddTransient(services =>
                 {
                     var strategyConfig = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
@@ -99,19 +100,9 @@ namespace AutomaticStockTrader.Core
                     const string tradingHolidays = "Trading Holidays";
                     quartz
                         .AddCalendar(tradingHolidays, holidayCalendar, true, true)
-#if DEBUG
-                        .ScheduleJob<ScheduledTrader>(trigger => trigger
-                            .StartNow()
-                            .WithSimpleSchedule(sched => sched
-                                .WithIntervalInSeconds(1)
-                                .WithRepeatCount(0)));
-#else
-                        .ScheduleJob<ScheduledTrader>(trigger => trigger
-                            .StartNow()
-                            .WithDailyTimeIntervalSchedule(schd => schd
-                                .StartingDailyAt(new TimeOfDay(14, 45)))
-                            .ModifiedByCalendar(tradingHolidays));
-#endif
+                        .ScheduleAtTradeOpenJob<StartStreamingTrader>(tradingHolidays)
+                        .ScheduleAtTradeOpenJob<ScheduledTrader>(tradingHolidays)
+                        .ScheduleAtTradeCloseJob<CloseStreamingTrading>(tradingHolidays);
                 });
 
             return services;
@@ -123,6 +114,41 @@ namespace AutomaticStockTrader.Core
             var key = new SecretKey(config.Alpaca_App_Id, config.Alpaca_Secret_Key);
 
             return (env, key);
+        }
+
+        private static IServiceCollectionQuartzConfigurator ScheduleAtTradeOpenJob<T>(this IServiceCollectionQuartzConfigurator quartz, string holidayCalendar) 
+            where T : IJob
+        {
+#if DEBUG
+            return quartz
+                .ScheduleJob<ScheduledTrader>(trigger => trigger
+                    .StartNow()
+                    .WithSimpleSchedule(sched => sched
+                        .WithIntervalInSeconds(1)
+                        .WithRepeatCount(0)));
+#else
+            return quartz
+                .ScheduleJob<ScheduledTrader>(trigger => trigger
+                    .StartNow()
+                    .WithDailyTimeIntervalSchedule(schd => schd
+                        .StartingDailyAt(new TimeOfDay(14, 45)))
+                    .ModifiedByCalendar(holidayCalendar));
+#endif
+        }
+
+        private static IServiceCollectionQuartzConfigurator ScheduleAtTradeCloseJob<T>(this IServiceCollectionQuartzConfigurator quartz, string holidayCalendar)
+    where T : IJob
+        {
+#if DEBUG
+            return quartz;
+#else
+            return quartz
+                .ScheduleJob<ScheduledTrader>(trigger => trigger
+                    .StartNow()
+                    .WithDailyTimeIntervalSchedule(schd => schd
+                        .StartingDailyAt(new TimeOfDay(20, 45)))
+                    .ModifiedByCalendar(holidayCalendar));
+#endif
         }
     }
 }
