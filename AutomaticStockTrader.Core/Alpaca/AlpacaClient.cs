@@ -45,6 +45,12 @@ namespace AutomaticStockTrader.Core.Alpaca
             return (await dataTask) == AuthStatus.Authorized && (await tradingTask) == AuthStatus.Authorized;
         }
 
+        public async Task DisconnectStreamApis()
+        {
+            await _alpacaDataStreamingClient.DisconnectAsync();
+            await _alpacaTradingStreamingClient.DisconnectAsync();
+        }
+
         public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action)
         {
             if (_stockActions.TryGetValue(stockSymbol, out var actionList))
