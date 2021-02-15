@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace AutomaticStockTrader.Core
 {
-    public class CloseStreamingTrading : IJob
+    public class CloseStreamingTrader : IJob
     {
         private readonly IAlpacaClient _alpacaClient;
         private readonly IEnumerable<StrategyHandler> _strategies;
         private readonly ITrackingRepository _trackingRepository;
 
-        public CloseStreamingTrading(
+        public CloseStreamingTrader(
             IAlpacaClient alpacaClient,
             IEnumerable<StrategyHandler> strategies,
             ITrackingRepository trackingRepository

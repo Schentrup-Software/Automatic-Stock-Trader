@@ -35,7 +35,7 @@ namespace AutomaticStockTrader.Core
                 .AddTransient<ITrackingRepository, TrackingRepository>()
                 .AddTransient<ScheduledTrader>()
                 .AddTransient<StartStreamingTrader>()
-                .AddTransient<CloseStreamingTrading>()
+                .AddTransient<CloseStreamingTrader>()
                 .AddTransient(services =>
                 {
                     var strategyConfig = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
@@ -102,7 +102,7 @@ namespace AutomaticStockTrader.Core
                         .AddCalendar(tradingHolidays, holidayCalendar, true, true)
                         .ScheduleAtTradeOpenJob<StartStreamingTrader>(tradingHolidays)
                         .ScheduleAtTradeOpenJob<ScheduledTrader>(tradingHolidays)
-                        .ScheduleAtTradeCloseJob<CloseStreamingTrading>(tradingHolidays);
+                        .ScheduleAtTradeCloseJob<CloseStreamingTrader>(tradingHolidays);
                 });
 
             return services;
