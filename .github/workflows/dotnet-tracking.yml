@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: TestTracking
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
