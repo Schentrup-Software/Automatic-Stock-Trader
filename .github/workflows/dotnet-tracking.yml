@@ -1,6 +1,7 @@
 name: Run Daily Tracking
 
 on:
+  workflow_dispatch:
   schedule:
     - cron:  '0 23 * * 1-5'
 
