@@ -9,7 +9,7 @@ namespace AutomaticStockTrader.Tests.Tracking
 {
     public static class TrackingRecordWriter
     {
-        private const string FILE_PATH = "tracking.csv";
+        private const string FILE_PATH = "../../../Tracking/tracking.csv";
 
         public static void WriteData(TrackingRecord record)
         {
