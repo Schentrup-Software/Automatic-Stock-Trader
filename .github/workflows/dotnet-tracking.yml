@@ -23,6 +23,7 @@ jobs:
       env:
         ALPACA_APP_ID: ${{ secrets.ALPACA_APP_ID }}
         ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        STOCK_LIST: "GE, XPEV, F, PLTR, BAC, NOK, ACB, PFE, FSR, VALE, BABA, WFC, XOM, T, PBR, ABEV, M, NCLH, PCG, MRO, AMC, DIS, DAL, FCX, BA, ET, BSX, C, SNAP, OXY, VRT, AUY, VIPS, SWN, UBER, MGM, GM, VER, JWN, NLY, LU, KMI, AMWL, COTY, TME"
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v3.8.2
       with:
