@@ -20,6 +20,8 @@ namespace AutomaticStockTrader.Core
 {
     public static class ServiceCollectionExtentions
     {
+        private const string EST_STANDARD_NAME = "Eastern Standard Time";
+
         public static IServiceCollection AddStockAutoTrading(this IServiceCollection services, AlpacaConfig config)
         {
             var (env, key) = GetAlpacaConfig(config);
@@ -27,7 +29,6 @@ namespace AutomaticStockTrader.Core
             services
                 .AddDbContext<StockContext>(ServiceLifetime.Transient)
                 .AddHostedService<InitStockContext>()
-                .AddHostedService<StreamingTrader>()
                 .AddSingleton(x => env.GetAlpacaTradingClient(key))
                 .AddSingleton(x => env.GetAlpacaStreamingClient(key))
                 .AddSingleton(x => env.GetAlpacaDataClient(key))
@@ -35,44 +36,45 @@ namespace AutomaticStockTrader.Core
                 .AddSingleton<IAlpacaClient, AlpacaClient>()
                 .AddTransient<ITrackingRepository, TrackingRepository>()
                 .AddTransient<ScheduledTrader>()
+                .AddTransient<StartStreamingTrader>()
+                .AddTransient<CloseStreamingTrader>()
                 .AddTransient(services =>
                 {
                     var strategyConfig = services.GetRequiredService<IOptions<StrategyConfig>>().Value;
-                    var stockConfig = services.GetRequiredService<IOptions<StockConfig>>().Value;
 
-                    return strategyConfig.Trading_Strategies
+                    return strategyConfig.Trading_Strategies_Parsed
                         .Select((x, i) => x switch
                         {
                             nameof(MeanReversionStrategy) =>
-                                stockConfig.Stock_List.Select(stockSymbol =>
+                                strategyConfig.Stock_List_Parsed.Select(stockSymbol =>
                                     new StrategyHandler(
                                         services.GetRequiredService<ILogger<StrategyHandler>>(),
                                         services.GetRequiredService<IAlpacaClient>(),
                                         services.GetRequiredService<ITrackingRepository>(),
                                         new MeanReversionStrategy(),
-                                        strategyConfig.Trading_Freqencies.ElementAtOrDefault(i),
+                                        strategyConfig.Trading_Freqencies_Parsed.ElementAtOrDefault(i),
                                         strategyConfig.Percentage_Of_Equity_Per_Position,
                                         stockSymbol)
                                     ),
                             nameof(MLStrategy) =>
-                                stockConfig.Stock_List.Select(stockSymbol =>
+                                strategyConfig.Stock_List_Parsed.Select(stockSymbol =>
                                     new StrategyHandler(
                                         services.GetRequiredService<ILogger<StrategyHandler>>(),
                                         services.GetRequiredService<IAlpacaClient>(),
                                         services.GetRequiredService<ITrackingRepository>(),
                                         new MLStrategy(services.GetRequiredService<IOptions<MLConfig>>().Value),
-                                        strategyConfig.Trading_Freqencies.ElementAtOrDefault(i),
+                                        strategyConfig.Trading_Freqencies_Parsed.ElementAtOrDefault(i),
                                         strategyConfig.Percentage_Of_Equity_Per_Position,
                                         stockSymbol)
                                     ),
                             nameof(MicrotrendStrategy) =>
-                                stockConfig.Stock_List.Select(stockSymbol =>
+                                strategyConfig.Stock_List_Parsed.Select(stockSymbol =>
                                     new StrategyHandler(
                                         services.GetRequiredService<ILogger<StrategyHandler>>(),
                                         services.GetRequiredService<IAlpacaClient>(),
                                         services.GetRequiredService<ITrackingRepository>(),
                                         new MicrotrendStrategy(),
-                                        strategyConfig.Trading_Freqencies.ElementAtOrDefault(i),
+                                        strategyConfig.Trading_Freqencies_Parsed.ElementAtOrDefault(i),
                                         strategyConfig.Percentage_Of_Equity_Per_Position,
                                         stockSymbol)
                                     ),
@@ -91,28 +93,19 @@ namespace AutomaticStockTrader.Core
                 .ForEach(x => holidayCalendar.AddExcludedDate(x));
 
             services
-                .AddQuartzHostedService()
                 .AddQuartz(quartz =>
                 {
                     quartz.UseMicrosoftDependencyInjectionJobFactory();
 
                     const string tradingHolidays = "Trading Holidays";
+                    
                     quartz
                         .AddCalendar(tradingHolidays, holidayCalendar, true, true)
-#if DEBUG
-                        .ScheduleJob<ScheduledTrader>(trigger => trigger
-                            .StartNow()
-                            .WithSimpleSchedule(sched => sched
-                                .WithIntervalInSeconds(1)
-                                .WithRepeatCount(0)));
-#else
-                        .ScheduleJob<ScheduledTrader>(trigger => trigger
-                            .StartNow()
-                            .WithDailyTimeIntervalSchedule(schd => schd
-                                .StartingDailyAt(new TimeOfDay(14, 45)))
-                            .ModifiedByCalendar(tradingHolidays));
-#endif
-                });
+                        .ScheduleJob<StartStreamingTrader>(tradingHolidays, config.Trading_Start_Time_Parsed[0], config.Trading_Start_Time_Parsed[1])
+                        .ScheduleJob<ScheduledTrader>(tradingHolidays, config.Trading_Start_Time_Parsed[0], config.Trading_Start_Time_Parsed[1])
+                        .ScheduleJob<CloseStreamingTrader>(tradingHolidays, config.Trading_Stop_Time_Parsed[0], config.Trading_Stop_Time_Parsed[1]);
+                })
+                .AddQuartzHostedService();
 
             return services;
         }
@@ -124,5 +117,14 @@ namespace AutomaticStockTrader.Core
 
             return (env, key);
         }
+
+        private static IServiceCollectionQuartzConfigurator ScheduleJob<T>(this IServiceCollectionQuartzConfigurator quartz, string holidayCalendar, int hour, int min) where T : IJob
+            => quartz
+                .ScheduleJob<ScheduledTrader>(trigger => trigger
+                    .StartNow()
+                    .WithCronSchedule(CronScheduleBuilder
+                        .DailyAtHourAndMinute(hour, min)
+                        .InTimeZone(TimeZoneInfo.GetSystemTimeZones().Single(x => string.Equals(x.StandardName, EST_STANDARD_NAME, StringComparison.InvariantCultureIgnoreCase))))
+                    .ModifiedByCalendar(holidayCalendar));
     }
 }

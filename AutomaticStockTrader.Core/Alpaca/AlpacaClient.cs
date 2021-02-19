@@ -45,6 +45,12 @@ namespace AutomaticStockTrader.Core.Alpaca
             return (await dataTask) == AuthStatus.Authorized && (await tradingTask) == AuthStatus.Authorized;
         }
 
+        public async Task DisconnectStreamApis()
+        {
+            await _alpacaDataStreamingClient.DisconnectAsync();
+            await _alpacaTradingStreamingClient.DisconnectAsync();
+        }
+
         public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action)
         {
             if (_stockActions.TryGetValue(stockSymbol, out var actionList))
@@ -130,12 +136,13 @@ namespace AutomaticStockTrader.Core.Alpaca
         /// Get stock data for single symbol
         /// </summary>
         /// <param name="stockSymbol">Stock symbol to get data for</param>
+        /// <param name="lookBack">Number of units to look back</param>
         /// <returns>Tuple with training data and test data in that order</returns>
-        public async Task<IList<StockInput>> GetStockData(string stockSymbol)
+        public async Task<IList<StockInput>> GetStockData(string stockSymbol, int? lookBack = null)
         {
             var stockData = await _alpacaDataClient.GetBarSetAsync(new BarSetRequest(stockSymbol, (TimeFrame)_config.Aggregation_Period_Unit)
             {
-                Limit = _config.Number_Of_Minutes_To_Look_Back
+                Limit = lookBack ?? _config.Number_Of_Units_To_Look_Back
             });
 
             return GetStockInputs(stockSymbol, stockData[stockSymbol]);
