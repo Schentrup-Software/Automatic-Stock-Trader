@@ -36,9 +36,10 @@ namespace AutomaticStockTrader.Core
 
                 if(position.NumberOfShares > 0)
                 {
+                    var marketPriceTask = _alpacaClient.GetStockData(position.StockSymbol, 1);
                     await _alpacaClient.PlaceOrder(strategy.StockStrategy, new Domain.Order
                     {
-                        MarketPrice = 0, //TODO: Find a better way to handle this
+                        MarketPrice = (await marketPriceTask).FirstOrDefault()?.ClosingPrice ?? 0,
                         OrderPlacedTime = DateTime.UtcNow,
                         SharesBought = position.NumberOfShares * (-1)
                     });

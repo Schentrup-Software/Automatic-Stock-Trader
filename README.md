@@ -25,7 +25,7 @@ The command app runs on the paper api by default. If you want to run the app usi
 To set the strategy to be used and the stocks the strategy should be run on, you will need to do one of two things:
 
 1. Pass in the values as command line arguments. Ex. `stonks2 --stock-symbols GE F AAPL --strategy-names MeanReversionStrategy MicrotrendStrategy --trading-freqencies Minute Day`
-2. Pass the values in via a environment variables. Ex. `export STOCK_LIST_RAW="GE, F, AAPL" && export TRADING_STRATEGIES_RAW="MeanReversionStrategy, MicrotrendStrategy && export TRADING_FREQENCIES_RAW="Minute, Day"`
+2. Pass the values in via a environment variables. Ex. `export STOCK_LIST="GE, F, AAPL" && export TRADING_STRATEGIES="MeanReversionStrategy, MicrotrendStrategy && export TRADING_FREQENCIES="Minute, Day"`
 
 The two examples above are essentially equivalent. They employ the "MeanReversionStrategy" every minute and the "MicrotrendStrategy" every day for the stocks GE, F, and AAPL.
 

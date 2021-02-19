@@ -36,7 +36,7 @@ namespace AutomaticStockTrader.Tests
                 Alpaca_App_Id = "p243ifj23-9fjipwfn4pjinf24e",
                 Alpaca_Secret_Key = "02489gh230gh-93fqenpi",
                 Alpaca_Use_Live_Api = false,
-                Number_Of_Minutes_To_Look_Back = 12
+                Number_Of_Units_To_Look_Back = 12
             };
 
             _alpacaClient = new AlpacaClient(

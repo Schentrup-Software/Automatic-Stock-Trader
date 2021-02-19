@@ -104,7 +104,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         {
             var totalMoneyMade = 0m;
 
-            foreach (var stock in _config.Get<StockConfig>().Stock_List)
+            foreach (var stock in _config.Get<StrategyConfig>().Stock_List_Parsed)
             {
                 var strategyHandler = new StrategyHandler(Mock.Of<ILogger<StrategyHandler>>(), _mockAlpacaClient.Object, _repo, strategy, TradingFrequency.Minute, 0.1m, stock);
 

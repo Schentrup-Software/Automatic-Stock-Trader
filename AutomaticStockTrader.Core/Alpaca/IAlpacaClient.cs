@@ -15,7 +15,7 @@ namespace AutomaticStockTrader.Core.Alpaca
         public Task PlaceOrder(StrategysStock postion, Order order);
         public Task EnsurePostionCleared(StrategysStock postion);
         public Task<decimal> GetTotalEquity();
-        public Task<IList<StockInput>> GetStockData(string stockSymbol);
+        public Task<IList<StockInput>> GetStockData(string stockSymbol, int? lookBack = null);
         public Task<IEnumerable<DateTime>> GetAllTradingHolidays(DateTime? start = null, DateTime? end = null);
     }
 }

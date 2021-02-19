@@ -23,19 +23,19 @@ class Program
 
         if (strategyNames?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("--Trading_Strategies_Raw");
+            args.Add("--Trading_Strategies");
             args.Add(strategyNames.Aggregate((x, y) => $"{x}, {y}"));
         }
 
         if (tradingFreqencies?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("--Trading_Freqencies_Raw");
+            args.Add("--Trading_Freqencies");
             args.Add(tradingFreqencies.Aggregate((x, y) => $"{x}, {y}"));
         }
 
         if (stockSymbols?.Any(x => !string.IsNullOrWhiteSpace(x)) ?? false)
         {
-            args.Add("--Stock_List_Raw");
+            args.Add("--Stock_List");
             args.Add(stockSymbols.Aggregate((x, y) => $"{x}, {y}"));
         }
 
@@ -53,7 +53,6 @@ class Program
                 services
                     .AddOptions()
                     .Configure<AlpacaConfig>(Config)
-                    .Configure<StockConfig>(Config)
                     .Configure<StrategyConfig>(Config)
                     .Configure<MLConfig>(Config)
                     .Configure<DatabaseConfig>(Config);
