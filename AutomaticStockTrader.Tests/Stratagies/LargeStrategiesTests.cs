@@ -17,6 +17,11 @@ using Order = AutomaticStockTrader.Domain.Order;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Alpaca.Markets;
+using System.IO;
+using CsvHelper;
+using System.Globalization;
+using AutomaticStockTrader.Tests.Tracking;
+using System;
 
 namespace AutomaticStockTrader.Tests.Stategies
 {
@@ -28,6 +33,8 @@ namespace AutomaticStockTrader.Tests.Stategies
         private StockContext _context;
         private ITrackingRepository _repo;
         private IConfigurationRoot _config;
+
+        private const decimal TOTAL_EQUITY = 100_000m;
 
         [TestInitialize]
         public void SetUp()
@@ -51,7 +58,7 @@ namespace AutomaticStockTrader.Tests.Stategies
             );
 
             _mockAlpacaClient = new Mock<IAlpacaClient>();
-            _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(100_000m);
+            _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(TOTAL_EQUITY);
 
             _context = new StockContext();
             _context.Database.EnsureDeleted();
@@ -74,6 +81,13 @@ namespace AutomaticStockTrader.Tests.Stategies
             
             var totalMoneyMade = await TestStrategy(strategy);
 
+            TrackingRecordWriter.WriteData(new TrackingRecord
+            {
+                Date = DateTime.Now,
+                PercentageMade = totalMoneyMade,
+                StrategyName = strategy.GetType().Name
+            });
+
             if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);        
         }
@@ -85,7 +99,14 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             var totalMoneyMade = await TestStrategy(strategy);
 
-            if(totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
+            TrackingRecordWriter.WriteData(new TrackingRecord
+            {
+                Date = DateTime.Now,
+                PercentageMade = totalMoneyMade,
+                StrategyName = strategy.GetType().Name
+            });
+
+            if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
         }
 
@@ -96,6 +117,13 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             var totalMoneyMade = await TestStrategy(strategy, true);
 
+            TrackingRecordWriter.WriteData(new TrackingRecord
+            {
+                Date = DateTime.Now,
+                PercentageMade = totalMoneyMade,
+                StrategyName = strategy.GetType().Name
+            });
+
             if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
         }
@@ -104,7 +132,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         {
             var totalMoneyMade = 0m;
 
-            foreach (var stock in _config.Get<StrategyConfig>().Stock_List_Parsed)
+            foreach (var stock in _config.Get<StrategyConfig>().Stock_List_Parsed.Take(3))
             {
                 var strategyHandler = new StrategyHandler(Mock.Of<ILogger<StrategyHandler>>(), _mockAlpacaClient.Object, _repo, strategy, TradingFrequency.Minute, 0.1m, stock);
 
@@ -113,16 +141,19 @@ namespace AutomaticStockTrader.Tests.Stategies
                 var orders = _context.Orders
                     .Where(x => x.Position.StockSymbol == stock)
                     .Select(x => new { quantity = x.ActualSharesBought.Value, price = x.ActualCostPerShare.Value })
-                    .ToList();            
+                    .ToList();
+
+                var m = orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice;
+                var z = orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y);
 
                 var moneyMade = orders.Any() 
-                    ? (orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) + orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice) * (-1)
+                    ? ((orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) + orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice * (-1)) / TOTAL_EQUITY) * 100
                     : 0;
 
-                Debug.WriteLine($"Money made on {stock}: {moneyMade}");
+                Debug.WriteLine($"Money made on {stock}: {moneyMade}%");
              
                 totalMoneyMade += moneyMade;
-                Debug.WriteLine($"Total so far: {totalMoneyMade}");
+                Debug.WriteLine($"Total so far: {totalMoneyMade}%");
             }
 
             return totalMoneyMade;
@@ -143,12 +174,13 @@ namespace AutomaticStockTrader.Tests.Stategies
             {
                 _mockAlpacaClient
                     .Setup(x => x.PlaceOrder(It.Is<StrategysStock>(x => x.StockSymbol == min.StockSymbol), It.IsAny<Order>()))
-                    .Callback<StrategysStock, Order>((s, o) => _repo.CompleteOrder(new CompletedOrder 
-                    { 
-                        StockSymbol = min.StockSymbol, 
-                        MarketPrice = min.ClosingPrice, 
-                        SharesBought = o.SharesBought 
-                    }).Wait());
+                    .Callback<StrategysStock, Order>((s, o) =>
+                        _repo.CompleteOrder(new CompletedOrder
+                        {
+                            StockSymbol = min.StockSymbol,
+                            MarketPrice = min.ClosingPrice,
+                            SharesBought = o.SharesBought
+                        }).Wait());
 
                 await strategy.HandleNewData(min);
                 lastPrice = min.ClosingPrice;
