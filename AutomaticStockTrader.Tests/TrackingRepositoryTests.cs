@@ -1,5 +1,7 @@
 ﻿using AutomaticStockTrader.Repository;
+using AutomaticStockTrader.Repository.Configuration;
 using AutomaticStockTrader.Repository.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -25,7 +27,6 @@ namespace AutomaticStockTrader.Tests
             _context = new StockContext();
             _context.Database.EnsureDeleted();
             _context.Database.EnsureCreated();
-
 
             _repo = new TrackingRepository(_context);
         }
