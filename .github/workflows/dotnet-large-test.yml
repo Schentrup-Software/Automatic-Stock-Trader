@@ -1,16 +1,15 @@
-name: Run Daily Tracking
+name: Run Large Tests
 
 on:
+  workflow_dispatch:
   schedule:
     - cron:  '0 23 * * 1-5'
 
 jobs:
-  run-test:
+  run-large-tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: TestTracking
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
@@ -21,9 +20,11 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal --filter TestCategory=Large
+      continue-on-error: true
       env:
         ALPACA_APP_ID: ${{ secrets.ALPACA_APP_ID }}
         ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        STOCK_LIST: "GE, XPEV, F, PLTR, BAC, NOK, ACB, PFE, FSR, VALE, BABA, WFC, XOM, T, PBR, ABEV, M, NCLH, PCG, MRO, AMC, DIS, DAL, FCX, BA, ET, BSX, C, SNAP, OXY, VRT, AUY, VIPS, SWN, UBER, MGM, GM, VER, JWN, NLY, LU, KMI, AMWL, COTY, TME"
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v3.8.2
       with:
