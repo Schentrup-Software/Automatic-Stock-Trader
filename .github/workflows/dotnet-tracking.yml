@@ -20,6 +20,7 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal --filter TestCategory=Large
+      continue-on-error: true
       env:
         ALPACA_APP_ID: ${{ secrets.ALPACA_APP_ID }}
         ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
