@@ -98,7 +98,7 @@ namespace AutomaticStockTrader.Core
                     quartz.UseMicrosoftDependencyInjectionJobFactory();
 
                     const string tradingHolidays = "Trading Holidays";
-                    
+
                     quartz
                         .AddCalendar(tradingHolidays, holidayCalendar, true, true)
                         .ScheduleJob<StartStreamingTrader>(tradingHolidays, config.Trading_Start_Time_Parsed[0], config.Trading_Start_Time_Parsed[1])
@@ -124,7 +124,7 @@ namespace AutomaticStockTrader.Core
                     .StartNow()
                     .WithCronSchedule(CronScheduleBuilder
                         .DailyAtHourAndMinute(hour, min)
-                        .InTimeZone(TimeZoneInfo.GetSystemTimeZones().Single(x => string.Equals(x.StandardName, EST_STANDARD_NAME, StringComparison.InvariantCultureIgnoreCase))))
+                        .InTimeZone(TimeZoneInfo.GetSystemTimeZones().FirstOrDefault(x => string.Equals(x.StandardName, EST_STANDARD_NAME, StringComparison.InvariantCultureIgnoreCase))) ?? throw new InvalidTimeZoneException($"{EST_STANDARD_NAME} time zone not found. Please install to run application."))
                     .ModifiedByCalendar(holidayCalendar));
     }
 }

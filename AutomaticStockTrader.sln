@@ -13,8 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.do\app.yml = .do\app.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\deploy.yml = .github\workflows\deploy.yml
-		.github\workflows\dotnet-tracking.yml = .github\workflows\dotnet-tracking.yml
-		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		.github\workflows\dotnet-large-test.yml = .github\workflows\dotnet-large-test.yml
+		.github\workflows\dotnet-test.yml = .github\workflows\dotnet-test.yml
 		README.md = README.md
 	EndProjectSection
 EndProject

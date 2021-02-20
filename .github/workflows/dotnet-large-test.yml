@@ -1,4 +1,4 @@
-name: Run Daily Tracking
+name: Run Large Tests
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron:  '0 23 * * 1-5'
 
 jobs:
-  run-test:
+  run-large-tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
