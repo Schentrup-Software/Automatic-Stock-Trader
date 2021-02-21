@@ -1,7 +1,5 @@
 ﻿using AutomaticStockTrader.Repository;
-using AutomaticStockTrader.Repository.Configuration;
 using AutomaticStockTrader.Repository.Models;
-using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

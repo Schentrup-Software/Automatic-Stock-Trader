@@ -17,9 +17,6 @@ using Order = AutomaticStockTrader.Domain.Order;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Alpaca.Markets;
-using System.IO;
-using CsvHelper;
-using System.Globalization;
 using AutomaticStockTrader.Tests.Tracking;
 using System;
 
