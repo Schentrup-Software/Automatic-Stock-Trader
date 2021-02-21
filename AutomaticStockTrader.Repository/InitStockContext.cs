@@ -37,7 +37,13 @@ namespace AutomaticStockTrader.Repository
             _logger.LogInformation($"Finished {GetType().Name} job");
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-            => _context.Database.EnsureDeletedAsync(cancellationToken);
+        public async Task StopAsync(CancellationToken cancellationToken) 
+        {
+            if (_context.IsUsingDefault)
+            {
+                _logger.LogInformation("Cleaning up SQLite DB context");
+                await _context.Database.EnsureDeletedAsync(cancellationToken);
+            }
+        }
     }
 }
