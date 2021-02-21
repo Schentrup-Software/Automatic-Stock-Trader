@@ -26,7 +26,8 @@ namespace AutomaticStockTrader.Repository
             if (_context.IsUsingDefault)
             {
                 _logger.LogInformation("Using default SQLite DB context");
-                await _context.Database.EnsureCreatedAsync(cancellationToken);
+                //await _context.Database.EnsureDeletedAsync(cancellationToken);
+                //await _context.Database.EnsureCreatedAsync(cancellationToken);
             }
             else
             {
@@ -37,13 +38,7 @@ namespace AutomaticStockTrader.Repository
             _logger.LogInformation($"Finished {GetType().Name} job");
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken) 
-        {
-            if (_context.IsUsingDefault)
-            {
-                _logger.LogInformation("Cleaning up SQLite DB context");
-                await _context.Database.EnsureDeletedAsync(cancellationToken);
-            }
-        }
+        public Task StopAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }
