@@ -9,12 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Tests"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{90C1458D-7163-45F9-89C0-143DE5F6908F}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		.do\app.yml = .do\app.yml
-		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
-		.github\workflows\deploy.yml = .github\workflows\deploy.yml
-		.github\workflows\dotnet-large-test.yml = .github\workflows\dotnet-large-test.yml
-		.github\workflows\dotnet-test.yml = .github\workflows\dotnet-test.yml
+		Dockerfile = Dockerfile
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -23,6 +21,20 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Core", "AutomaticStockTrader.Core\AutomaticStockTrader.Core.csproj", "{22FB3703-5CAA-44F3-8E96-49A4CE3EB66D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomaticStockTrader.Domain", "AutomaticStockTrader.Domain\AutomaticStockTrader.Domain.csproj", "{03E2D734-7DE3-4F34-9F9C-B75265C21FD4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "do", "do", "{339FCEFF-DB6C-442F-A854-51B450EADE2F}"
+	ProjectSection(SolutionItems) = preProject
+		.do\app.yml = .do\app.yml
+		.do\deploy.template.yaml = .do\deploy.template.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{E7CE9172-9F1D-427B-B341-5F063B1A74D3}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
+		.github\workflows\deploy.yml = .github\workflows\deploy.yml
+		.github\workflows\dotnet-large-test.yml = .github\workflows\dotnet-large-test.yml
+		.github\workflows\dotnet-test.yml = .github\workflows\dotnet-test.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +65,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{339FCEFF-DB6C-442F-A854-51B450EADE2F} = {90C1458D-7163-45F9-89C0-143DE5F6908F}
+		{E7CE9172-9F1D-427B-B341-5F063B1A74D3} = {90C1458D-7163-45F9-89C0-143DE5F6908F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {674F0116-973B-450C-95A6-772C56943580}
