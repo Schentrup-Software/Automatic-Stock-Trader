@@ -1,36 +1,18 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
+﻿using System;
+using System.Threading.Tasks;
+using Google.Cloud.Firestore;
 
 namespace AutomaticStockTrader.Tests.Tracking
 {
     public static class TrackingRecordWriter
     {
-        private const string FILE_PATH = "../../../Tracking/tracking.csv";
+        private const string COLLECTION = "tracking";
 
-        public static void WriteData(TrackingRecord record)
+        public static async Task WriteData(TrackingConfig config, double percentageMade, string strategyName)
         {
-            if (File.Exists(FILE_PATH))
+            if (!string.IsNullOrWhiteSpace(config.Google_Application_Credentials))
             {
-                using var stream = File.Open(FILE_PATH, FileMode.Append);
-                using var writer = new StreamWriter(stream);
-                using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
-                {
-                    HasHeaderRecord = false
-                });
-
-                csv.WriteRecords(new List<TrackingRecord> { record });
-                writer.Flush();
-            }
-            else
-            {
-                using var writer = new StreamWriter(FILE_PATH);
-                using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-                csv.WriteRecords(new List<TrackingRecord> { record });
-                writer.Flush();
+                await (await FirestoreDb.CreateAsync("automatic-stock-trader-tracker")).Collection(COLLECTION).AddAsync(new { DateTime.UtcNow.Date, percentageMade, strategyName });
             }
         }
     }

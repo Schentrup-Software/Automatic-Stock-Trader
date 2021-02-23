@@ -31,6 +31,8 @@ namespace AutomaticStockTrader.Tests.Stategies
         private ITrackingRepository _repo;
         private IConfigurationRoot _config;
 
+        private TrackingConfig _trackingConfig;
+
         private const decimal TOTAL_EQUITY = 100_000m;
 
         [TestInitialize]
@@ -41,6 +43,8 @@ namespace AutomaticStockTrader.Tests.Stategies
                 .AddJsonFile($"appsettings.json", true, true)
                 .AddEnvironmentVariables()
                 .Build();
+
+            _trackingConfig = _config.Get<TrackingConfig>();
 
             var alpacaConfig = _config.Get<AlpacaConfig>();
             var env = alpacaConfig.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
@@ -78,12 +82,7 @@ namespace AutomaticStockTrader.Tests.Stategies
             
             var totalMoneyMade = await TestStrategy(strategy);
 
-            TrackingRecordWriter.WriteData(new TrackingRecord
-            {
-                Date = DateTime.Now,
-                PercentageMade = totalMoneyMade,
-                StrategyName = strategy.GetType().Name
-            });
+            await TrackingRecordWriter.WriteData(_trackingConfig, (double)totalMoneyMade, strategy.GetType().Name);
 
             if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);        
@@ -96,12 +95,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             var totalMoneyMade = await TestStrategy(strategy);
 
-            TrackingRecordWriter.WriteData(new TrackingRecord
-            {
-                Date = DateTime.Now,
-                PercentageMade = totalMoneyMade,
-                StrategyName = strategy.GetType().Name
-            });
+            await TrackingRecordWriter.WriteData(_trackingConfig, (double)totalMoneyMade, strategy.GetType().Name);
 
             if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
@@ -114,12 +108,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             var totalMoneyMade = await TestStrategy(strategy, true);
 
-            TrackingRecordWriter.WriteData(new TrackingRecord
-            {
-                Date = DateTime.Now,
-                PercentageMade = totalMoneyMade,
-                StrategyName = strategy.GetType().Name
-            });
+            await TrackingRecordWriter.WriteData(_trackingConfig, (double)totalMoneyMade, strategy.GetType().Name);
 
             if (totalMoneyMade == 0) Assert.Inconclusive("No money lost or made");
             Assert.IsTrue(totalMoneyMade > 0);
@@ -136,6 +125,7 @@ namespace AutomaticStockTrader.Tests.Stategies
                 var closingPrice = await TestStrategyOnStock(strategyHandler, stock, useHistoricalData);
 
                 var orders = _context.Orders
+                    .AsQueryable()
                     .Where(x => x.Position.StockSymbol == stock)
                     .Select(x => new { quantity = x.ActualSharesBought.Value, price = x.ActualCostPerShare.Value })
                     .ToList();
