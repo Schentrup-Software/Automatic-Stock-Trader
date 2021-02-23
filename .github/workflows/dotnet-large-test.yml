@@ -20,9 +20,7 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: | 
-        echo $GOOGLE_APPLICATION_CREDENTIALS_FILE > $PWD/googlecreds.json 
-        GOOGLE_APPLICATION_CREDENTIALS=$PWD/googlecreds.json
-        cat $GOOGLE_APPLICATION_CREDENTIALS
+        echo $GOOGLE_APPLICATION_CREDENTIALS_FILE > $GOOGLE_APPLICATION_CREDENTIALS      
         dotnet test --no-restore --verbosity normal --filter TestCategory=Large
       continue-on-error: true
       env:
@@ -30,3 +28,4 @@ jobs:
         ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
         STOCK_LIST: "GE"
         GOOGLE_APPLICATION_CREDENTIALS_FILE: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_FILE }}
+        GOOGLE_APPLICATION_CREDENTIALS: "$PWD/googlecreds.json"
