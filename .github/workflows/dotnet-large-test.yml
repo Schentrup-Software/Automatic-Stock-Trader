@@ -22,7 +22,7 @@ jobs:
       run: | 
         echo $GOOGLE_APPLICATION_CREDENTIALS_FILE > $PWD/googlecreds.json 
         GOOGLE_APPLICATION_CREDENTIALS=$PWD/googlecreds.json
-        echo $GOOGLE_APPLICATION_CREDENTIALS
+        cat $GOOGLE_APPLICATION_CREDENTIALS
         dotnet test --no-restore --verbosity normal --filter TestCategory=Large
       continue-on-error: true
       env:
