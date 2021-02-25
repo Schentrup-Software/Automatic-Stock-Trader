@@ -28,6 +28,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         private IAlpacaClient _alpacaClient;
         private Mock<IAlpacaClient> _mockAlpacaClient;
         private StockContext _context;
+        private InitStockContext _initStockContext;
         private ITrackingRepository _repo;
         private IConfigurationRoot _config;
 
@@ -62,8 +63,8 @@ namespace AutomaticStockTrader.Tests.Stategies
             _mockAlpacaClient.Setup(x => x.GetTotalEquity()).ReturnsAsync(TOTAL_EQUITY);
 
             _context = new StockContext();
-            _context.Database.EnsureDeleted();
-            _context.Database.EnsureCreated(); 
+            _initStockContext = new InitStockContext(Mock.Of<ILogger<InitStockContext>>(), _context);
+            _initStockContext.StartAsync(default).Wait();
 
             _repo = new TrackingRepository(_context);
         }
@@ -71,6 +72,7 @@ namespace AutomaticStockTrader.Tests.Stategies
         [TestCleanup]
         public void CleanUp()
         {
+            _initStockContext.StopAsync(default).Wait();
             _alpacaClient?.Dispose();
             _repo?.Dispose();
         }
@@ -134,7 +136,7 @@ namespace AutomaticStockTrader.Tests.Stategies
                 var z = orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y);
 
                 var moneyMade = orders.Any() 
-                    ? ((orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) + orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice * (-1)) / TOTAL_EQUITY) * 100
+                    ? ((orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) * (-1) + orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice) / TOTAL_EQUITY) * 100
                     : 0;
 
                 Debug.WriteLine($"Money made on {stock}: {moneyMade}%");
@@ -148,7 +150,9 @@ namespace AutomaticStockTrader.Tests.Stategies
 
         private async Task<decimal> TestStrategyOnStock(StrategyHandler strategy, string stock, bool useHistoricaData)
         {
-            var data = (await _alpacaClient.GetStockData(stock)).OrderBy(x => x.Time).ToList();
+            var data = (await _alpacaClient.GetStockData(stock, 500))
+                .OrderBy(x => x.Time)
+                .ToList();
 
             var sizeOfTestSet = useHistoricaData ? data.Count / 5 : data.Count;
             var testData = data.Take(sizeOfTestSet);
