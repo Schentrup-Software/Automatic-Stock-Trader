@@ -1,6 +1,8 @@
 ﻿using AutomaticStockTrader.Repository;
 using AutomaticStockTrader.Repository.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,7 @@ namespace AutomaticStockTrader.Tests
     {
         private StockContext _context;
         private TrackingRepository _repo;
+        private InitStockContext _initStockContext;
 
         private const string _stockSymbol = "Foobar";
         private const string _strategy = "FooStrategy";
@@ -23,8 +26,8 @@ namespace AutomaticStockTrader.Tests
         public void SetUp()
         {
             _context = new StockContext();
-            _context.Database.EnsureDeleted();
-            _context.Database.EnsureCreated();
+            _initStockContext = new InitStockContext(Mock.Of<ILogger<InitStockContext>>(), _context);
+            _initStockContext.StartAsync(default).Wait();
 
             _repo = new TrackingRepository(_context);
         }
@@ -32,6 +35,7 @@ namespace AutomaticStockTrader.Tests
         [TestCleanup]
         public void CleanUp()
         {
+            _initStockContext.StopAsync(default).Wait();
             _repo?.Dispose();
         }
 
