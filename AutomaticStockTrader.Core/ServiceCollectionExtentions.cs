@@ -15,6 +15,8 @@ using Alpaca.Markets;
 using Environments = Alpaca.Markets.Environments;
 using Quartz;
 using Quartz.Impl.Calendar;
+using Microsoft.Extensions.Configuration;
+using AutomaticStockTrader.Repository.Configuration;
 
 namespace AutomaticStockTrader.Core
 {
@@ -22,9 +24,17 @@ namespace AutomaticStockTrader.Core
     {
         private const string EST_STANDARD_NAME = "Eastern Standard Time";
 
-        public static IServiceCollection AddStockAutoTrading(this IServiceCollection services, AlpacaConfig config)
+        public static IServiceCollection AddStockAutoTrading(this IServiceCollection services, IConfiguration config)
         {
+            services
+                .AddOptions()
+                .Configure<AlpacaConfig>(config)
+                .Configure<StrategyConfig>(config)
+                .Configure<MLConfig>(config)
+                .Configure<DatabaseConfig>(config);
+
             var (env, key) = GetAlpacaConfig(config);
+            var tradingConfig = config.Get<TradingConfig>();
 
             services
                 .AddDbContext<StockContext>(ServiceLifetime.Transient)
@@ -101,27 +111,35 @@ namespace AutomaticStockTrader.Core
 
                     quartz
                         .AddCalendar(tradingHolidays, holidayCalendar, true, true)
-                        .ScheduleJob<StartStreamingTrader>(tradingHolidays, config.Trading_Start_Time_Parsed[0], config.Trading_Start_Time_Parsed[1])
-                        .ScheduleJob<ScheduledTrader>(tradingHolidays, config.Trading_Start_Time_Parsed[0], config.Trading_Start_Time_Parsed[1])
-                        .ScheduleJob<CloseStreamingTrader>(tradingHolidays, config.Trading_Stop_Time_Parsed[0], config.Trading_Stop_Time_Parsed[1]);
+                        .ScheduleJob<ScheduledTrader>(tradingHolidays, tradingConfig.Trading_Start_Time_Parsed[0], tradingConfig.Trading_Start_Time_Parsed[1]);
+
+                    if (tradingConfig.Is_Pattern_Day_Trader) 
+                    { 
+                        quartz
+                            .ScheduleJob<StartStreamingTrader>(tradingHolidays, tradingConfig.Trading_Start_Time_Parsed[0], tradingConfig.Trading_Start_Time_Parsed[1])
+                            .ScheduleJob<CloseStreamingTrader>(tradingHolidays, tradingConfig.Trading_Stop_Time_Parsed[0], tradingConfig.Trading_Stop_Time_Parsed[1]);
+                    }
                 })
                 .AddQuartzHostedService();
 
             return services;
         }
 
-        private static (IEnvironment env, SecurityKey key) GetAlpacaConfig(AlpacaConfig config)
+        private static (IEnvironment env, SecurityKey key) GetAlpacaConfig(IConfiguration config)
         {
-            var env = config.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
-            var key = new SecretKey(config.Alpaca_App_Id, config.Alpaca_Secret_Key);
+            var alpacaConfig = config.Get<AlpacaConfig>();
+
+            var env = alpacaConfig.Alpaca_Use_Live_Api ? Environments.Live : Environments.Paper;
+            var key = new SecretKey(alpacaConfig.Alpaca_App_Id, alpacaConfig.Alpaca_Secret_Key);
 
             return (env, key);
         }
 
         private static IServiceCollectionQuartzConfigurator ScheduleJob<T>(this IServiceCollectionQuartzConfigurator quartz, string holidayCalendar, int hour, int min) where T : IJob
             => quartz
-                .ScheduleJob<ScheduledTrader>(trigger => trigger
+                .ScheduleJob<T>(trigger => trigger
                     .StartNow()
+                    .WithIdentity(typeof(T).Name)
                     .WithCronSchedule(CronScheduleBuilder
                         .DailyAtHourAndMinute(hour, min)
                         .InTimeZone(TimeZoneInfo.GetSystemTimeZones().FirstOrDefault(x => string.Equals(x.StandardName, EST_STANDARD_NAME, StringComparison.InvariantCultureIgnoreCase))) ?? throw new InvalidTimeZoneException($"{EST_STANDARD_NAME} time zone not found. Please install to run application."))

@@ -132,12 +132,10 @@ namespace AutomaticStockTrader.Tests.Stategies
                     .Select(x => new { quantity = x.ActualSharesBought.Value, price = x.ActualCostPerShare.Value })
                     .ToList();
 
-                var m = orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice;
-                var z = orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y);
+                var leftoverStockSale = orders.Any() ? orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice : 0;
+                var amountMadeSoFar = orders.Any() ? orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) : 0;
 
-                var moneyMade = orders.Any() 
-                    ? ((orders.Select(x => x.quantity * x.price).Aggregate((x, y) => x + y) * (-1) + orders.Select(x => x.quantity).Aggregate((x, y) => x + y) * closingPrice) / TOTAL_EQUITY) * 100
-                    : 0;
+                var moneyMade = ((amountMadeSoFar * (-1) + leftoverStockSale) / TOTAL_EQUITY) * 100;
 
                 Debug.WriteLine($"Money made on {stock}: {moneyMade}%");
              
@@ -150,7 +148,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
         private async Task<decimal> TestStrategyOnStock(StrategyHandler strategy, string stock, bool useHistoricaData)
         {
-            var data = (await _alpacaClient.GetStockData(stock, 500))
+            var data = (await _alpacaClient.GetStockData(stock, TradingFrequency.Minute, 500))
                 .OrderBy(x => x.Time)
                 .ToList();
 
@@ -169,7 +167,7 @@ namespace AutomaticStockTrader.Tests.Stategies
                         _repo.CompleteOrder(new CompletedOrder
                         {
                             StockSymbol = min.StockSymbol,
-                            MarketPrice = min.ClosingPrice,
+                            MarketPrice = o.MarketPrice,
                             SharesBought = o.SharesBought
                         }).Wait());
 

@@ -10,7 +10,10 @@
 
   <ItemGroup>
     <PackageReference Include="Alpaca.Markets" Version="4.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
     <PackageReference Include="Microsoft.ML" Version="1.5.4" />
     <PackageReference Include="Microsoft.ML.TimeSeries" Version="1.5.4" />
     <PackageReference Include="Quartz" Version="3.2.4" />

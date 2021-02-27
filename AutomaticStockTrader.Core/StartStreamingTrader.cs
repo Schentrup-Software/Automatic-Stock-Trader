@@ -49,7 +49,7 @@ namespace AutomaticStockTrader
 
             foreach (var strategy in _strategies.Where(x => x.StockStrategy.TradingFrequency == Domain.TradingFrequency.Minute))
             {
-                var stockData = await _alpacaClient.GetStockData(strategy.StockStrategy.StockSymbol);
+                var stockData = await _alpacaClient.GetStockData(strategy.StockStrategy.StockSymbol, strategy.StockStrategy.TradingFrequency);
 
                 if ((stockData?.Count ?? 0) == 0)
                 {

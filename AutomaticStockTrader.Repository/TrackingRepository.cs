@@ -84,14 +84,14 @@ namespace AutomaticStockTrader.Repository
         }
 
         public IEnumerable<Domain.Order> GetCompletedOrders(Domain.StrategysStock strategysStock)
-            => GetStatagysStockFromDb(strategysStock).Orders
-                .Where(x => x.ActualCostPerShare.HasValue && x.ActualSharesBought.HasValue)
-                .Select(x => new Domain.Order
+            => GetStatagysStockFromDb(strategysStock)?.Orders
+                ?.Where(x => x.ActualCostPerShare.HasValue && x.ActualSharesBought.HasValue)
+                ?.Select(x => new Domain.Order
                 {
                     MarketPrice = x.ActualCostPerShare.Value,
                     OrderPlacedTime = x.OrderPlaced.UtcDateTime,
                     SharesBought = x.ActualSharesBought.Value
-                });
+                }) ?? Enumerable.Empty<Domain.Order>();
         
 
         private StratagysStock GetStatagysStockFromDb(Domain.StrategysStock strategysStock)
