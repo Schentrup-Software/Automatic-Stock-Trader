@@ -6,6 +6,14 @@ A framework for building and testing minute to minute automatic trading using th
 
 You will need the `ASP.NET and web development` workflow installed in order to have the right tools to develop this application
 
+## A word on professional trading
+
+In the US, the [FINRA defines a "pattern day traders"](https://www.finra.org/investors/learn-to-invest/advanced-investing/day-trading-margin-requirements-know-rules) as a person who execute 4 or more “day trades” 
+within five business days. To do this, you must  have at least $25,000 in their accounts and can only trade in margin accounts.  If the account falls below that requirement, the pattern day trader will not be 
+permitted to day trade until the account is restored to the $25,000 minimum equity level. The margin rule applies to day trading in any security, including options. Therefore, if you do meet the abouve requirements, 
+you can set the `Is_Pattern_Day_Trader` to true and set the trading frequency to any or all of the employed strategies to `Minute`. If you do not meet these requires, do not set `Is_Pattern_Day_Trader`
+and use only the `Day` trading frequency. This will ensure you do not get marked as a pattern day trader and have your account locked.
+
 ## How to run
 
 ### Run using Digital Ocean

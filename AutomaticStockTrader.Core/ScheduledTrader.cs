@@ -35,19 +35,26 @@ namespace AutomaticStockTrader.Core
 
             foreach (var strategy in _strategies)
             {
-                var stockData = await _alpacaClient.GetStockData(strategy.StockStrategy.StockSymbol);
+                var stockData = await _alpacaClient.GetStockData(strategy.StockStrategy.StockSymbol, strategy.StockStrategy.TradingFrequency);
 
                 if ((stockData?.Count ?? 0) == 0)
                 {
                     throw new ArgumentException($"You stock symbol {strategy.StockStrategy.StockSymbol} is not valid.");
                 }
 
-                var lastCompletedOrder = _trackingRepository.GetCompletedOrders(strategy.StockStrategy).Max(x => x.OrderPlacedTime);
-                var waitTime = lastCompletedOrder.AddDays(1).AddMinutes(1) - DateTime.UtcNow;
-                
-                if(waitTime.TotalMilliseconds > 0)
+                //TODO: Check if pattern day trader is true. If so do the below
+                //If not, pull the last order time for a stock from alpaca directly to ensure we do not intra day trade. 
+                var orders = _trackingRepository.GetCompletedOrders(strategy.StockStrategy);
+
+                if (orders.Any()) 
                 {
-                    await Task.Delay((int)Math.Ceiling(waitTime.TotalMilliseconds));
+                    var lastCompletedOrder = orders.Max(x => x.OrderPlacedTime);
+                    var waitTime = lastCompletedOrder.AddDays(1).AddMinutes(1) - DateTime.UtcNow;
+
+                    if (waitTime.TotalMilliseconds > 0)
+                    {
+                        await Task.Delay((int)Math.Ceiling(waitTime.TotalMilliseconds));
+                    }
                 }
                 
                 await strategy.RunStrategy(stockData);

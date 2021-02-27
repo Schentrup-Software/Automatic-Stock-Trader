@@ -138,11 +138,11 @@ namespace AutomaticStockTrader.Core.Alpaca
         /// <param name="stockSymbol">Stock symbol to get data for</param>
         /// <param name="lookBack">Number of units to look back</param>
         /// <returns>Tuple with training data and test data in that order</returns>
-        public async Task<IList<StockInput>> GetStockData(string stockSymbol, int? lookBack = null)
+        public async Task<IList<StockInput>> GetStockData(string stockSymbol, TradingFrequency aggUnits, int lookBack = 1000)
         {
-            var stockData = await _alpacaDataClient.GetBarSetAsync(new BarSetRequest(stockSymbol, (TimeFrame)_config.Aggregation_Period_Unit)
+            var stockData = await _alpacaDataClient.GetBarSetAsync(new BarSetRequest(stockSymbol, (TimeFrame) aggUnits)
             {
-                Limit = lookBack ?? _config.Number_Of_Units_To_Look_Back
+                Limit = lookBack
             });
 
             return GetStockInputs(stockSymbol, stockData[stockSymbol]);

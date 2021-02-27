@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutomaticStockTrader.Core.Configuration;
-using AutomaticStockTrader.Repository.Configuration;
 using AutomaticStockTrader.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 
 class Program
 {
@@ -51,22 +48,14 @@ class Program
                 var Config = hostContext.Configuration;
 
                 services
-                    .AddOptions()
-                    .Configure<AlpacaConfig>(Config)
-                    .Configure<StrategyConfig>(Config)
-                    .Configure<MLConfig>(Config)
-                    .Configure<DatabaseConfig>(Config);
-
-                services
                     .AddLogging(opt =>
                     {
                         opt.AddSimpleConsole(opt =>
                         {
                             opt.TimestampFormat = "hh:mm:ss ";
-                            opt.SingleLine = true;
                         });
                     })
-                    .AddStockAutoTrading(Config.Get<AlpacaConfig>());
+                    .AddStockAutoTrading(Config);
             });
 
 
