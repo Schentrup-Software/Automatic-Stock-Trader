@@ -1,17 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Alpaca.Markets;
-using AutomaticStockTrader.Core.Configuration;
 using AutomaticStockTrader.Domain;
-using Microsoft.Extensions.Options;
 
 namespace AutomaticStockTrader.Core.Alpaca
 {
     public class AlpacaClient : IAlpacaClient
     {
-        private readonly AlpacaConfig _config;
         private readonly IAlpacaTradingClient _alpacaTradingClient;
         private readonly IAlpacaStreamingClient _alpacaTradingStreamingClient;
         private readonly IAlpacaDataClient _alpacaDataClient;
@@ -21,14 +18,12 @@ namespace AutomaticStockTrader.Core.Alpaca
         private IDictionary<string, List<Action<StockInput>>> _stockActions;
 
         public AlpacaClient(
-            IOptions<AlpacaConfig> config,
             IAlpacaTradingClient alpacaTradingClient,
             IAlpacaStreamingClient alpacaTradingStreamingClient,
             IAlpacaDataClient alpacaDataClient,
             IAlpacaDataStreamingClient alpacaDataStreamingClient
             )
         {
-            _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
             _alpacaTradingClient = alpacaTradingClient ?? throw new ArgumentNullException(nameof(alpacaTradingClient));
             _alpacaTradingStreamingClient = alpacaTradingStreamingClient ?? throw new ArgumentNullException(nameof(alpacaTradingStreamingClient));
             _alpacaDataClient = alpacaDataClient ?? throw new ArgumentNullException(nameof(alpacaDataClient));
@@ -85,13 +80,13 @@ namespace AutomaticStockTrader.Core.Alpaca
             }
         }
 
-        public void SubscribeToTradeUpdates(Action<CompletedOrder> action)
+        public void SubscribeToTradeUpdates(Action<Order> action)
         {
             _alpacaTradingStreamingClient.OnTradeUpdate += (trade) =>
             {
                 if (trade.Order.OrderStatus == OrderStatus.Filled || trade.Order.OrderStatus == OrderStatus.PartiallyFilled)
                 {
-                    action(new CompletedOrder
+                    action(new Order
                     {
                         MarketPrice = trade.Price.Value,
                         OrderPlacedTime = trade.TimestampUtc ?? DateTime.UtcNow,
@@ -105,10 +100,10 @@ namespace AutomaticStockTrader.Core.Alpaca
         /// <summary>
         /// Buy or sell stock
         /// </summary>
-        public Task PlaceOrder(StrategysStock strategy, Order order)
+        public Task PlaceOrder(Order order)
             => _alpacaTradingClient.PostOrderAsync(
                 new NewOrderRequest(
-                    symbol: strategy.StockSymbol,
+                    symbol: order.StockSymbol,
                     quantity: order.SharesBought > 0 ? order.SharesBought : order.SharesBought * (-1),
                     side: order.SharesBought > 0 ? OrderSide.Buy : OrderSide.Sell,
                     type: OrderType.Market,

@@ -17,6 +17,7 @@ using Quartz;
 using Quartz.Impl.Calendar;
 using Microsoft.Extensions.Configuration;
 using AutomaticStockTrader.Repository.Configuration;
+using AutomaticStockTrader.Core.Traders;
 
 namespace AutomaticStockTrader.Core
 {

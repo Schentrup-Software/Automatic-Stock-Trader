@@ -52,7 +52,6 @@ namespace AutomaticStockTrader.Tests.Stategies
             var key = new SecretKey(alpacaConfig.Alpaca_App_Id, alpacaConfig.Alpaca_Secret_Key);
 
             _alpacaClient = new AlpacaClient(
-                Options.Create(alpacaConfig), 
                 env.GetAlpacaTradingClient(key), 
                 env.GetAlpacaStreamingClient(key), 
                 env.GetAlpacaDataClient(key), 
@@ -162,9 +161,9 @@ namespace AutomaticStockTrader.Tests.Stategies
             foreach (var min in testData)
             {
                 _mockAlpacaClient
-                    .Setup(x => x.PlaceOrder(It.Is<StrategysStock>(x => x.StockSymbol == min.StockSymbol), It.IsAny<Order>()))
+                    .Setup(x => x.PlaceOrder(It.Is<Order>(x => x.StockSymbol == min.StockSymbol)))
                     .Callback<StrategysStock, Order>((s, o) =>
-                        _repo.CompleteOrder(new CompletedOrder
+                        _repo.CompleteOrder(new Order
                         {
                             StockSymbol = min.StockSymbol,
                             MarketPrice = o.MarketPrice,

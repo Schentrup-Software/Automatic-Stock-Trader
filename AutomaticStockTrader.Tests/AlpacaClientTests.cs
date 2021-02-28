@@ -19,7 +19,6 @@ namespace AutomaticStockTrader.Tests
         private Mock<IAlpacaStreamingClient> _mockAlpacaTradingStreamingClient;
         private Mock<IAlpacaDataClient> _mockAlpacaDataClient;
         private Mock<IAlpacaDataStreamingClient> _mockAlpacaDataStreamingClient;
-        private AlpacaConfig _testConfig;
 
         [TestInitialize]
         public void SetUp()
@@ -30,15 +29,7 @@ namespace AutomaticStockTrader.Tests
             _mockAlpacaDataClient = new Mock<IAlpacaDataClient>();
             _mockAlpacaDataStreamingClient = new Mock<IAlpacaDataStreamingClient>();
 
-            _testConfig = new AlpacaConfig
-            {
-                Alpaca_App_Id = "p243ifj23-9fjipwfn4pjinf24e",
-                Alpaca_Secret_Key = "02489gh230gh-93fqenpi",
-                Alpaca_Use_Live_Api = false,
-            };
-
             _alpacaClient = new AlpacaClient(
-                Options.Create(_testConfig),
                 _mockAlpacaTradingClient.Object,
                 _mockAlpacaTradingStreamingClient.Object,
                 _mockAlpacaDataClient.Object,
@@ -49,23 +40,18 @@ namespace AutomaticStockTrader.Tests
         [TestMethod]
         public async Task PlaceOrder_PositiveShares_Buys()
         {
-            var strategyStock = new StrategysStock
-            {
-                StockSymbol = "Foo",
-                Strategy = "Bar",
-                TradingFrequency = TradingFrequency.Year
-            };
             var order = new Order
             {
+                StockSymbol = "Foo",
                 MarketPrice = 12m,
                 OrderPlacedTime = DateTime.Now,
                 SharesBought = 13
             };
 
-            await _alpacaClient.PlaceOrder(strategyStock, order);
+            await _alpacaClient.PlaceOrder(order);
 
             _mockAlpacaTradingClient.Verify(x => x.PostOrderAsync(It.Is<NewOrderRequest>(y =>
-                y.Symbol == strategyStock.StockSymbol &&
+                y.Symbol == order.StockSymbol &&
                 y.Quantity == order.SharesBought &&
                 y.Side == OrderSide.Buy &&
                 y.Type == OrderType.Market &&
@@ -76,23 +62,18 @@ namespace AutomaticStockTrader.Tests
         [TestMethod]
         public async Task PlaceOrder_NegativeShares_Sells()
         {
-            var strategyStock = new StrategysStock
-            {
-                StockSymbol = "Foo",
-                Strategy = "Bar",
-                TradingFrequency = TradingFrequency.Year
-            };
             var order = new Order
             {
+                StockSymbol = "Foo",
                 MarketPrice = 12m,
                 OrderPlacedTime = DateTime.Now,
                 SharesBought = -13
             };
 
-            await _alpacaClient.PlaceOrder(strategyStock, order);
+            await _alpacaClient.PlaceOrder(order);
 
             _mockAlpacaTradingClient.Verify(x => x.PostOrderAsync(It.Is<NewOrderRequest>(y =>
-                y.Symbol == strategyStock.StockSymbol &&
+                y.Symbol == order.StockSymbol &&
                 y.Quantity == order.SharesBought * (-1) &&
                 y.Side == OrderSide.Sell &&
                 y.Type == OrderType.Market &&
