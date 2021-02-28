@@ -1,4 +1,4 @@
-using AutomaticStockTrader.Repository.Models;
+﻿using AutomaticStockTrader.Repository.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,6 +55,23 @@ namespace AutomaticStockTrader.Repository
             {
                 Console.WriteLine("Failed to find potential order that matched. Ignoring for now");
             }
+        }
+
+        public async Task AddOrder(Domain.StrategysStock strategysStock, Domain.Order order)
+        {
+            var stratagysStock = GetStatagysStockFromDb(strategysStock);
+
+            _context.Add(new Order
+            {
+                OrderPlaced = order.OrderPlacedTime,
+                AttemptedCostPerShare = order.MarketPrice,
+                AttemptedSharesBought = order.SharesBought,
+                ActualCostPerShare = order.MarketPrice,
+                ActualSharesBought = order.SharesBought,
+                PositionId = stratagysStock.Id
+            });
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<Domain.Position> GetOrCreateEmptyPosition(Domain.StrategysStock strategysStock)

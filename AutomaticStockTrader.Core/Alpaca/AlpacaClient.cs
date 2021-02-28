@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -108,23 +108,17 @@ namespace AutomaticStockTrader.Core.Alpaca
                     side: order.SharesBought > 0 ? OrderSide.Buy : OrderSide.Sell,
                     type: OrderType.Market,
                     duration: TimeInForce.Ioc));
-        
-
-        /// <summary>
-        /// Clear out any postion that exists
-        /// </summary>
-        public async Task EnsurePostionCleared(StrategysStock postion)
-        {
-            var actualPostion = (await _alpacaTradingClient.ListPositionsAsync()).SingleOrDefault(x => string.Equals(x.Symbol, postion.StockSymbol, StringComparison.OrdinalIgnoreCase));
-            
-            if (actualPostion != null)
-            {
-                await _alpacaTradingClient.PostOrderAsync(new NewOrderRequest(actualPostion.Symbol, actualPostion.Quantity, OrderSide.Sell, OrderType.Market, TimeInForce.Ioc));
-            }
-        }
 
         public async Task<decimal> GetTotalEquity()
             => (await _alpacaTradingClient.GetAccountAsync()).Equity;
+
+        public async Task<IEnumerable<Position>> GetPositions()
+            => (await _alpacaTradingClient.ListPositionsAsync())
+                .Select(x => new Position
+                {
+                    NumberOfShares = x.Quantity,
+                    StockSymbol = x.Symbol
+                });
         
 
         /// <summary>

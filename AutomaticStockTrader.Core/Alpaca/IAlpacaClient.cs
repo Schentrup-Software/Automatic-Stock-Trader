@@ -1,4 +1,4 @@
-using AutomaticStockTrader.Domain;
+﻿using AutomaticStockTrader.Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,6 +14,7 @@ namespace AutomaticStockTrader.Core.Alpaca
         public void SubscribeToTradeUpdates(Action<Order> action);
         public Task PlaceOrder(Order order);
         public Task<decimal> GetTotalEquity();
+        public Task<IEnumerable<Position>> GetPositions();
         public Task<IList<StockInput>> GetStockData(string stockSymbol, TradingFrequency aggUnits, int lookBack = 1000);
         public Task<IEnumerable<DateTime>> GetAllTradingHolidays(DateTime? start = null, DateTime? end = null);
     }
