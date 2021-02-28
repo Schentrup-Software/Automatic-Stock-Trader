@@ -90,13 +90,14 @@ namespace AutomaticStockTrader.Core.Strategies
             {
                 var order = new Order
                 {
+                    StockSymbol = stockStrategy.StockSymbol,
                     SharesBought = currentPosition.NumberOfShares * (-1),
                     MarketPrice = marketPrice,
                     OrderPlacedTime = DateTime.UtcNow
                 };
 
                 await _trackingRepository.AddPendingOrder(stockStrategy, order);
-                await _alpacaClient.PlaceOrder(stockStrategy, order);
+                await _alpacaClient.PlaceOrder(order);
             }
         }
 
@@ -111,13 +112,14 @@ namespace AutomaticStockTrader.Core.Strategies
             {
                 var order = new Order
                 {
+                    StockSymbol = stockStrategy.StockSymbol,
                     SharesBought = sharesNeeded,
                     MarketPrice = marketPrice,
                     OrderPlacedTime = DateTime.UtcNow
                 };
 
                 await _trackingRepository.AddPendingOrder(stockStrategy, order);
-                await _alpacaClient.PlaceOrder(stockStrategy, order);
+                await _alpacaClient.PlaceOrder(order);
             }
         }
 

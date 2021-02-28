@@ -8,7 +8,7 @@ using AutomaticStockTrader.Repository;
 using Microsoft.Extensions.Logging;
 using Quartz;
 
-namespace AutomaticStockTrader
+namespace AutomaticStockTrader.Core.Traders
 {
     public class StartStreamingTrader : IJob
     {

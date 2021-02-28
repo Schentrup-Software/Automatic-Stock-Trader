@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AutomaticStockTrader.Core
+namespace AutomaticStockTrader.Core.Traders
 {
     public class CloseStreamingTrader : IJob
     {
@@ -43,8 +43,9 @@ namespace AutomaticStockTrader.Core
                 if(position.NumberOfShares > 0)
                 {
                     var marketPriceTask = _alpacaClient.GetStockData(position.StockSymbol, strategy.StockStrategy.TradingFrequency, 1);
-                    await _alpacaClient.PlaceOrder(strategy.StockStrategy, new Domain.Order
+                    await _alpacaClient.PlaceOrder(new Domain.Order
                     {
+                        StockSymbol = strategy.StockStrategy.StockSymbol,
                         MarketPrice = (await marketPriceTask).FirstOrDefault()?.ClosingPrice ?? 0,
                         OrderPlacedTime = DateTime.UtcNow,
                         SharesBought = position.NumberOfShares * (-1)

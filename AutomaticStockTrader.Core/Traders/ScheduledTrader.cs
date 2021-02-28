@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AutomaticStockTrader.Core
+namespace AutomaticStockTrader.Core.Traders
 {
     public class ScheduledTrader : IJob
     {

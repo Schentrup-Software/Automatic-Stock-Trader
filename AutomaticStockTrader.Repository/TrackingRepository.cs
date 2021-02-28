@@ -1,4 +1,4 @@
-﻿using AutomaticStockTrader.Repository.Models;
+using AutomaticStockTrader.Repository.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,7 @@ namespace AutomaticStockTrader.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task CompleteOrder(Domain.CompletedOrder completedOrder)
+        public async Task CompleteOrder(Domain.Order completedOrder)
         {
             var potentialOrders = _context.Orders
                 .Where(x =>

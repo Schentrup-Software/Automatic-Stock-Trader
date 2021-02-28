@@ -1,4 +1,4 @@
-﻿using AutomaticStockTrader.Domain;
+using AutomaticStockTrader.Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,9 +11,8 @@ namespace AutomaticStockTrader.Core.Alpaca
         public Task DisconnectStreamApis();
         public void AddPendingMinuteAggSubscription(string stockSymbol, Action<StockInput> action);
         public void SubscribeToMinuteAgg();
-        public void SubscribeToTradeUpdates(Action<CompletedOrder> action);
-        public Task PlaceOrder(StrategysStock postion, Order order);
-        public Task EnsurePostionCleared(StrategysStock postion);
+        public void SubscribeToTradeUpdates(Action<Order> action);
+        public Task PlaceOrder(Order order);
         public Task<decimal> GetTotalEquity();
         public Task<IList<StockInput>> GetStockData(string stockSymbol, TradingFrequency aggUnits, int lookBack = 1000);
         public Task<IEnumerable<DateTime>> GetAllTradingHolidays(DateTime? start = null, DateTime? end = null);
