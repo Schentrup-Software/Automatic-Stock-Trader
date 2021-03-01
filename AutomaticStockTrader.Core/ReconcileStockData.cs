@@ -65,8 +65,8 @@ namespace AutomaticStockTrader.Core
                     {
                         OrderPlacedTime = DateTime.UtcNow,
                         SharesBought = currentPosition.NumberOfShares * (-1),
-                        StockSymbol = currentPosition.StockSymbol
-                    });
+                        StockSymbol = currentPosition.StockSymbol,
+                    }, OrderTiming.GoodTillCanceled);
                 }
             }
 

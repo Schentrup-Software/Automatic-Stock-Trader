@@ -100,14 +100,14 @@ namespace AutomaticStockTrader.Core.Alpaca
         /// <summary>
         /// Buy or sell stock
         /// </summary>
-        public Task PlaceOrder(Order order)
+        public Task PlaceOrder(Order order, OrderTiming? orderTiming = null)
             => _alpacaTradingClient.PostOrderAsync(
                 new NewOrderRequest(
                     symbol: order.StockSymbol,
                     quantity: order.SharesBought > 0 ? order.SharesBought : order.SharesBought * (-1),
                     side: order.SharesBought > 0 ? OrderSide.Buy : OrderSide.Sell,
                     type: OrderType.Market,
-                    duration: TimeInForce.Ioc));
+                    duration: (TimeInForce) (orderTiming ?? OrderTiming.PartialFillOrKill)));
 
         public async Task<decimal> GetTotalEquity()
             => (await _alpacaTradingClient.GetAccountAsync()).Equity;

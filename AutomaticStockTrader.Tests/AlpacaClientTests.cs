@@ -54,7 +54,7 @@ namespace AutomaticStockTrader.Tests
                 y.Symbol == order.StockSymbol &&
                 y.Quantity == order.SharesBought &&
                 y.Side == OrderSide.Buy &&
-                y.Type == OrderType.Market &&
+                y.Type == Alpaca.Markets.OrderType.Market &&
                 y.Duration == TimeInForce.Ioc
             ), default), Times.Once);
         }
@@ -76,7 +76,7 @@ namespace AutomaticStockTrader.Tests
                 y.Symbol == order.StockSymbol &&
                 y.Quantity == order.SharesBought * (-1) &&
                 y.Side == OrderSide.Sell &&
-                y.Type == OrderType.Market &&
+                y.Type == Alpaca.Markets.OrderType.Market &&
                 y.Duration == TimeInForce.Ioc
             ), default), Times.Once);
         }
