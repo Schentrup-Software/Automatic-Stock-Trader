@@ -72,7 +72,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             await _strategyHandler.HandleBuy((decimal)price, strategysStock);
 
-            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.IsAny<Order>()), Times.Never);
+            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.IsAny<Order>(), null), Times.Never);
             _mockTrackingRepository.Verify(x => x.AddPendingOrder(It.IsAny<StrategysStock>(), It.IsAny<Order>()), Times.Never);
         }
 
@@ -104,7 +104,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             await _strategyHandler.HandleBuy((decimal)price, strategysStock);
 
-            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.Is<Order>(x => x.SharesBought == shareBought)), Times.Once);
+            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.Is<Order>(x => x.SharesBought == shareBought), null), Times.Once);
             _mockTrackingRepository.Verify(x => x.AddPendingOrder(It.IsAny<StrategysStock>(), It.Is<Order>(x => x.SharesBought == shareBought)), Times.Once);
         }
 
@@ -134,7 +134,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             await _strategyHandler.HandleSell(price, strategysStock);
 
-            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.Is<Order>(x => x.SharesBought == shares * (-1))), Times.Once);
+            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.Is<Order>(x => x.SharesBought == shares * (-1)), null), Times.Once);
             _mockTrackingRepository.Verify(x => x.AddPendingOrder(It.IsAny<StrategysStock>(), It.Is<Order>(x => x.SharesBought == shares * (-1))), Times.Once);
         }
 
@@ -164,7 +164,7 @@ namespace AutomaticStockTrader.Tests.Stategies
 
             await _strategyHandler.HandleSell(price, strategysStock);
 
-            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.IsAny<Order>()), Times.Never);
+            _mockAlpacaClient.Verify(x => x.PlaceOrder(It.IsAny<Order>(), null), Times.Never);
             _mockTrackingRepository.Verify(x => x.AddPendingOrder(It.IsAny<StrategysStock>(), It.IsAny<Order>()), Times.Never);
         }
     }

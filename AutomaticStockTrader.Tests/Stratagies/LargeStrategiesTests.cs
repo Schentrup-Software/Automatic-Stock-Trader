@@ -161,7 +161,7 @@ namespace AutomaticStockTrader.Tests.Stategies
             foreach (var min in testData)
             {
                 _mockAlpacaClient
-                    .Setup(x => x.PlaceOrder(It.Is<Order>(x => x.StockSymbol == min.StockSymbol)))
+                    .Setup(x => x.PlaceOrder(It.Is<Order>(x => x.StockSymbol == min.StockSymbol), null))
                     .Callback<StrategysStock, Order>((s, o) =>
                         _repo.CompleteOrder(new Order
                         {
