@@ -8,9 +8,9 @@ You will need the `ASP.NET and web development` workflow installed in order to h
 
 ## A word on professional trading
 
-In the US, the [FINRA defines a "pattern day traders"](https://www.finra.org/investors/learn-to-invest/advanced-investing/day-trading-margin-requirements-know-rules) as a person who execute 4 or more ìday tradesî 
-within five business days. To do this, you must  have at least $25,000 in their accounts and can only trade in margin accounts.  If the account falls below that requirement, the pattern day trader will not be 
-permitted to day trade until the account is restored to the $25,000 minimum equity level. The margin rule applies to day trading in any security, including options. Therefore, if you do meet the abouve requirements, 
+In the US, the [FINRA defines a "pattern day traders"](https://www.finra.org/investors/learn-to-invest/advanced-investing/day-trading-margin-requirements-know-rules) as a person who execute 4 or more ‚Äúday trades‚Äù 
+within five business days. To do this, you must have at least $25,000 in their accounts and can only trade in margin accounts.  If the account falls below that requirement, the pattern day trader will not be 
+permitted to day trade until the account is restored to the $25,000 minimum equity level. The margin rule applies to day trading in any security, including options. Therefore, if you do meet the above requirements, 
 you can set the `Is_Pattern_Day_Trader` to true and set the trading frequency to any or all of the employed strategies to `Minute`. If you do not meet these requires, do not set `Is_Pattern_Day_Trader`
 and use only the `Day` trading frequency. This will ensure you do not get marked as a pattern day trader and have your account locked.
 
@@ -25,7 +25,7 @@ Click the button below! You can customize the strategy and stock list using env 
 ### Locally or on another server
 
 This is a command line tool written in .NET 5. After compiling the project using Visual Studio or .NET cli,
-you will need to add the follwing enviroment variables:
+you will need to add the following environment variables:
 
 ```
 "ALPACA_SECRET_KEY": "Your personal Alpaca secret key",
@@ -58,7 +58,7 @@ the price is above the average, sell the position.
 Risk: :dragon_face:
 Possible reward: :moneybag:
 
-If the price increases for 2 conseutive minutes, buy the stock. If the price has dropped in the past 2 units, sell the
+If the price increases for 2 consecutive minutes, buy the stock. If the price has dropped in the past 2 units, sell the
 position. If the price remained the same, do not buy or sell.
 
 ### MLStategy
@@ -67,5 +67,5 @@ Risk: :dragon_face: :dragon_face: :dragon_face:
 Possible reward: :moneybag:
 
 Uses ML.Net to create a forecasting model using Singular Spectrum Analysis on the past days price movements. After the 
-model is trained, we use to predict the nex minutes price. If the prediction is the price will go up, we buy. If we predict
+model is trained, we use to predict the next minutes price. If the prediction is the price will go up, we buy. If we predict
 the price will go down, we sell. This training and prediction happens every trading cycle. 
