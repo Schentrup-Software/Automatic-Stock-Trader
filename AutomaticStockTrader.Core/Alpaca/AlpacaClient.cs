@@ -58,14 +58,14 @@ namespace AutomaticStockTrader.Core.Alpaca
             }
         }
 
-        public void SubscribeToMinuteAgg()
+        public async Task SubscribeToMinuteAgg()
         {
-            var newClient = _alpacaDataStreamingClient.GetMinuteAggSubscription();
+            var newClient = _alpacaDataStreamingClient.GetMinuteBarSubscription();
             newClient.Received += HandleMinuteAgg;
-            _alpacaDataStreamingClient.Subscribe(newClient);
+            await _alpacaDataStreamingClient.SubscribeAsync(newClient);
         }
 
-        private void HandleMinuteAgg(IStreamAgg newValue) 
+        private void HandleMinuteAgg(IBar newValue) 
         {
             if (_stockActions.TryGetValue(newValue.Symbol, out var actionList))
             {
@@ -73,7 +73,7 @@ namespace AutomaticStockTrader.Core.Alpaca
                     action(new StockInput
                     {
                         ClosingPrice = newValue.Close,
-                        Time = newValue.EndTimeUtc,
+                        Time = newValue.TimeUtc,
                         StockSymbol = newValue.Symbol
                     })
                 );
@@ -104,12 +104,12 @@ namespace AutomaticStockTrader.Core.Alpaca
             => _alpacaTradingClient.PostOrderAsync(
                 new NewOrderRequest(
                     symbol: order.StockSymbol,
-                    quantity: order.SharesBought > 0 ? order.SharesBought : order.SharesBought * (-1),
+                    quantity: OrderQuantity.Fractional(order.SharesBought > 0 ? order.SharesBought : order.SharesBought * (-1)),
                     side: order.SharesBought > 0 ? OrderSide.Buy : OrderSide.Sell,
                     type: OrderType.Market,
                     duration: (TimeInForce) (orderTiming ?? OrderTiming.PartialFillOrKill)));
 
-        public async Task<decimal> GetTotalEquity()
+        public async Task<decimal?> GetTotalEquity()
             => (await _alpacaTradingClient.GetAccountAsync()).Equity;
 
         public async Task<IEnumerable<Position>> GetPositions()
@@ -129,12 +129,41 @@ namespace AutomaticStockTrader.Core.Alpaca
         /// <returns>Tuple with training data and test data in that order</returns>
         public async Task<IList<StockInput>> GetStockData(string stockSymbol, TradingFrequency aggUnits, int lookBack = 1000)
         {
-            var stockData = await _alpacaDataClient.GetBarSetAsync(new BarSetRequest(stockSymbol, (TimeFrame) aggUnits)
-            {
-                Limit = lookBack
-            });
+            var startTime = DateTime.UtcNow;
+            var lookBackInverse = lookBack * (-1);
+            var barTimeFrame = BarTimeFrame.Minute;
 
-            return GetStockInputs(stockSymbol, stockData[stockSymbol]);
+            switch (aggUnits)
+            {
+                case TradingFrequency.Minute:
+                    startTime.AddMinutes(lookBackInverse);
+                    barTimeFrame = BarTimeFrame.Minute;
+                    break;
+                case TradingFrequency.Day:
+                    startTime.AddDays(lookBackInverse);
+                    barTimeFrame = BarTimeFrame.Day;
+                    break;
+                case TradingFrequency.Week:
+                    startTime.AddDays(lookBackInverse * 7);
+                    barTimeFrame = BarTimeFrame.Week;
+                    break;
+                case TradingFrequency.Month:
+                    startTime.AddMonths(lookBackInverse);
+                    barTimeFrame = BarTimeFrame.Month;
+                    break;
+                case TradingFrequency.Quarter:
+                    startTime.AddMonths(lookBackInverse * 3);
+                    barTimeFrame = BarTimeFrame.Quarter;
+                    break;
+                case TradingFrequency.Year:
+                    startTime.AddYears(lookBackInverse);
+                    barTimeFrame = BarTimeFrame.Year;
+                    break;
+            }
+
+            var stockData = await _alpacaDataClient.GetHistoricalBarsAsync(new HistoricalBarsRequest(stockSymbol, startTime, DateTime.UtcNow, barTimeFrame));
+
+            return GetStockInputs(stockSymbol, stockData.Items[stockSymbol]);
         }
 
         public async Task<IEnumerable<DateTime>> GetAllTradingHolidays(DateTime? start = null, DateTime? end = null)
@@ -149,10 +178,10 @@ namespace AutomaticStockTrader.Core.Alpaca
             return allDays.Except(tradingDays);
         }
 
-        private static IList<StockInput> GetStockInputs(string stockSymbol, IEnumerable<IAgg> aggs) => aggs
+        private static IList<StockInput> GetStockInputs(string stockSymbol, IEnumerable<IBar> aggs) => aggs
             .Select((x, i) => new StockInput
             {
-                Time = x.TimeUtc ?? throw new ArgumentNullException(nameof(x.TimeUtc)),
+                Time = x.TimeUtc,
                 ClosingPrice = x.Close,
                 StockSymbol = stockSymbol
             })

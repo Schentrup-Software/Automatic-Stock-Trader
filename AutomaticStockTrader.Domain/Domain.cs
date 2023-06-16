@@ -13,7 +13,7 @@ namespace AutomaticStockTrader.Domain
     {
         public string StockSymbol { get; init; }
         public DateTime OrderPlacedTime { get; init; }
-        public long SharesBought { get; init; }
+        public decimal SharesBought { get; init; }
         public decimal MarketPrice { get; init; }
     }
 
@@ -27,7 +27,7 @@ namespace AutomaticStockTrader.Domain
     public record Position
     {
         public string StockSymbol { get; init; }
-        public long NumberOfShares { get; init; }
+        public decimal NumberOfShares { get; init; }
     }
 
     public enum TradingFrequency
