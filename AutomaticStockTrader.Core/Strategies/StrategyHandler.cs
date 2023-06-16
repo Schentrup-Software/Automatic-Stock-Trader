@@ -123,13 +123,13 @@ namespace AutomaticStockTrader.Core.Strategies
             }
         }
 
-        private long CalculateNumberOfSharesNeeded(long numberOfSharesCurrentlyOwned, decimal marketPrice, decimal equity)
+        private decimal CalculateNumberOfSharesNeeded(decimal numberOfSharesCurrentlyOwned, decimal marketPrice, decimal? equity)
         {
-            var targetEquityAmount = equity * _percentageOfEquityToAllocate;
+            var targetEquityAmount = (equity ?? 0) * _percentageOfEquityToAllocate;
             var missingEquity = targetEquityAmount - (numberOfSharesCurrentlyOwned * marketPrice);
             var percentageMissging = missingEquity / targetEquityAmount;
 
-            var numberOfSharesNeeded = (long)Math.Floor(missingEquity / marketPrice); 
+            var numberOfSharesNeeded = Math.Floor(missingEquity / marketPrice); 
 
             //Only buy if we are missing at least 10% equity. This helps prevent thrashing.
             return percentageMissging >= 0.1m ? numberOfSharesNeeded : 0;

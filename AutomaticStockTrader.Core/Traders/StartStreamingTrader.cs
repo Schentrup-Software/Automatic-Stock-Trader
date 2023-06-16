@@ -60,7 +60,7 @@ namespace AutomaticStockTrader.Core.Traders
                 _alpacaClient.AddPendingMinuteAggSubscription(strategy.StockStrategy.StockSymbol, async y => await strategy.HandleNewData(y));
             }
 
-            _alpacaClient.SubscribeToMinuteAgg();
+            await _alpacaClient.SubscribeToMinuteAgg();
 
             _logger.LogInformation($"Finished {GetType().Name} job");
         }

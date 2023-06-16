@@ -52,7 +52,7 @@ namespace AutomaticStockTrader.Tests
 
             _mockAlpacaTradingClient.Verify(x => x.PostOrderAsync(It.Is<NewOrderRequest>(y =>
                 y.Symbol == order.StockSymbol &&
-                y.Quantity == order.SharesBought &&
+                y.Quantity.Value == order.SharesBought &&
                 y.Side == OrderSide.Buy &&
                 y.Type == Alpaca.Markets.OrderType.Market &&
                 y.Duration == TimeInForce.Ioc
@@ -74,7 +74,7 @@ namespace AutomaticStockTrader.Tests
 
             _mockAlpacaTradingClient.Verify(x => x.PostOrderAsync(It.Is<NewOrderRequest>(y =>
                 y.Symbol == order.StockSymbol &&
-                y.Quantity == order.SharesBought * (-1) &&
+                y.Quantity.Value == order.SharesBought * (-1) &&
                 y.Side == OrderSide.Sell &&
                 y.Type == Alpaca.Markets.OrderType.Market &&
                 y.Duration == TimeInForce.Ioc

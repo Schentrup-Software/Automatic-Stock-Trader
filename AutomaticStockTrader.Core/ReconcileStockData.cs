@@ -73,7 +73,7 @@ namespace AutomaticStockTrader.Core
             _logger.LogInformation($"Finished {GetType().Name} job");
         }
 
-        private async Task ReconcileStock(long sharesPerPosition, StrategysStock strategy)
+        private async Task ReconcileStock(decimal sharesPerPosition, StrategysStock strategy)
         {
             _logger.LogDebug($"Assigning {sharesPerPosition} shares of {strategy.StockSymbol} to {strategy.Strategy}");
 

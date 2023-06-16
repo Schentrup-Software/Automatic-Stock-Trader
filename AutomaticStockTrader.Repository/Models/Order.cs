@@ -12,11 +12,11 @@ namespace AutomaticStockTrader.Repository.Models
 
         public DateTimeOffset OrderPlaced { get; set; }
 
-        public long AttemptedSharesBought { get; set; }
+        public decimal AttemptedSharesBought { get; set; }
 
         public decimal AttemptedCostPerShare { get; set; }
 
-        public long? ActualSharesBought { get; set; }
+        public decimal? ActualSharesBought { get; set; }
 
         public decimal? ActualCostPerShare { get; set; }
 
